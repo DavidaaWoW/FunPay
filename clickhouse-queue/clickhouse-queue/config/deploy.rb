@@ -26,7 +26,7 @@ set :ssh_options, {
 }
 
 set :rvm_type, :user
-set :rvm_ruby_string, '2.3.1'
+set :rvm_ruby_version, '2.3.1'
 
 namespace :deploy do
   task :finalize_update do ; end
@@ -53,5 +53,15 @@ namespace :deploy do
     end
   end
 
+  namespace :composer do
+    desc 'Composer install requires'
+    task :install do
+      on roles(:app), in: :sequence, wait: 15 do
+        execute "cd #{release_path}; /usr/local/bin/composer install --no-dev --no-interaction --quiet --optimize-autoloader"
+      end
+    end
+  end
+
+  before 'deploy:updated', 'composer:install'
   after :log_revision, :restart
 end
