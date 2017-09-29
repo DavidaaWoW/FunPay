@@ -53,6 +53,14 @@ namespace :deploy do
     end
   end
 
+  task :status do
+    on roles(:app), in: :sequence, wait: 5 do
+      within release_path do
+        execute "cd #{current_path}; ./run status"
+      end
+    end
+  end
+
   namespace :composer do
     desc 'Composer install requires'
     task :install do
