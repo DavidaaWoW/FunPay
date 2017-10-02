@@ -1,7 +1,6 @@
 <?php
 namespace REES46\ClickHouse;
 
-use League\CLImate\CLImate;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 
@@ -27,7 +26,10 @@ class Processor {
 	 */
 	private $config;
 
-	private $ch;
+	/**
+	 * @var Cli
+	 */
+	private $cli;
 
 	/**
 	 * @var Logger
@@ -61,21 +63,12 @@ class Processor {
 		});
 
 		//Подключаемся к кликхаусу
-		$this->cluckHouseConnect();
+		$this->cli = new Cli($this->config['clickhouse'], $this->logger);
 
 		//Ожидаем очередь
 		while(count($this->channel->callbacks)) {
 			$this->channel->wait();
 		}
-	}
-
-	//Подключаемся к кликхаусу
-	public function cluckHouseConnect() {
-		$this->ch = curl_init();
-		curl_setopt($this->ch, CURLOPT_URL, "http://{$this->config['clickhouse']['host']}:{$this->config['clickhouse']['port']}/?database={$this->config['clickhouse']['database']}");
-		curl_setopt($this->ch, CURLOPT_POST, 1);
-		curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, true);
 	}
 
 	/**
@@ -89,17 +82,14 @@ class Processor {
 			//Делаем работу
 			$body = json_decode($body, true);
 
-			//Строим строку вставки
-			$sql = sprintf('INSERT INTO %s (%s) VALUES (%s)', $body['table'], implode(', ', array_keys($body['values'])), implode(', ', array_map([$this, 'quote'], $body['values'])));
-			$this->logger->debug('SQL: ' . $sql);
-
 			//Отправляем данные
-			curl_setopt($this->ch, CURLOPT_POSTFIELDS, $sql);
-			$response = curl_exec($this->ch);
-			$code = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
+			$this->cli->insert($body['table'], $body['values']);
 
-			if( $code >= 400 || $code < 200 ) {
-				throw new ProcessorException('[CODE: ' . $code . ']' . $response);
+			//Дополнительные алгоритмы при вставке в таблицу
+			try {
+				$this->tableProcessor($body);
+			} catch(\Exception $e) {
+				$this->logger->error($e->getMessage());
 			}
 
 			//Отвечаем, что успешно
@@ -116,21 +106,54 @@ class Processor {
 	}
 
 	/**
-	 * @param {string|int|null} $data
-	 * @return string
-	 * @throws \Exception
+	 * Обработчик
+	 * @param array $body
 	 */
-	protected function quote($data) {
-		if( is_float($data) || is_int($data) ) {
-			return $data;
-		} else {
-			if( is_string($data) ) {
-				return '\'' . addslashes($data) . '\'';
-			} else {
-				if( $data ) {
-					throw new \Exception('Invalid data type.');
-				} else {
-					return 'NULL';
+	protected function tableProcessor($body) {
+		switch( $body['table'] ) {
+
+			//Таблица заказов
+			case 'order_items':
+				$this->orderItemProcessor($body);
+				break;
+		}
+	}
+
+	/**
+	 * Обработчик таблицы заказа
+	 * @param array $body
+	 */
+	protected function orderItemProcessor($body) {
+
+		//Если дополнительные параметры не указаны, выходим
+		if( empty($body['opts']) ) {
+			return;
+		}
+
+		//Дата выборки
+		$date = date('Y-m-d', strtotime('-2 DAYS'));
+
+		//Получаем список компаний
+		$campaigns = $this->cli->get("SELECT object_id, brand FROM actions WHERE session_id = {$body['values']['session_id']} AND shop_id = {$body['values']['shop_id']} AND event = 'recone_click' AND object_type = 'VendorCampaign' AND date >= '{$date}'");
+
+		//Если нашлись компании вендоров
+		if( !empty($campaigns) ) {
+			foreach($campaigns as $campaign) {
+
+				//Если бренды совпадают
+				if( mb_strtolower($campaign->brand) == mb_strtolower($body['values']['brand']) ) {
+					$this->cli->insert('actions', [
+						'session_id'           => $body['values']['session_id'],
+						'current_session_code' => $body['opts']['current_session_code'] ?? '',
+						'shop_id'              => $body['values']['shop_id'],
+						'event'                => 'recone_purchase',
+						'object_type'          => 'VendorCampaign',
+						'object_id'            => $campaign->object_id,
+						'price'                => $body['values']['price'],
+						'recommended_by'       => $body['values']['recommended_by'] ?? null,
+						'referer'              => $body['opts']['referer'] ?? '',
+						'useragent'            => $body['opts']['useragent'] ?? '',
+					]);
 				}
 			}
 		}
