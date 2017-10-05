@@ -149,7 +149,6 @@ class Cli {
 					'null' => $this->columnIsNull($column['type']),
 				];
 			}
-			$this->logger->debug(print_r($this->schema, true));
 		}
 		return $this->schema[$table];
 	}

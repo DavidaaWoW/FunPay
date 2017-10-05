@@ -149,7 +149,7 @@ class Processor {
 						'event'                => 'recone_purchase',
 						'object_type'          => 'VendorCampaign',
 						'object_id'            => $campaign->object_id,
-						'price'                => $body['values']['price'],
+						'price'                => $body['values']['price'] * $body['values']['amount'],
 						'recommended_by'       => $body['values']['recommended_by'] ?? null,
 						'referer'              => $body['opts']['referer'] ?? '',
 						'useragent'            => $body['opts']['useragent'] ?? '',
