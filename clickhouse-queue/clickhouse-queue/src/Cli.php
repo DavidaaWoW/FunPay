@@ -64,7 +64,7 @@ class Cli {
 	 * @return null|\stdClass
 	 */
 	public function get($sql) {
-		$result = json_decode($this->sql($sql . ' FORMAT JSON'));
+		$result = json_decode($this->sql(preg_replace('/(\n|\t+)/', ' ', $sql) . ' FORMAT JSON'));
 		if( isset($result->data) ) {
 			return $result->data;
 		}

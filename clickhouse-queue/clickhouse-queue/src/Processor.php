@@ -139,7 +139,11 @@ class Processor {
 		$date = date('Y-m-d', strtotime('-2 DAYS'));
 
 		//Получаем список компаний
-		$campaigns = $this->cli->get("SELECT object_id, brand FROM actions WHERE session_id = {$body['values']['session_id']} AND shop_id = {$body['values']['shop_id']} AND event = 'recone_click' AND object_type = 'VendorCampaign' AND date >= '{$date}'");
+		$campaigns = $this->cli->get("SELECT object_id, brand FROM actions WHERE session_id = {$body['values']['session_id']}
+ 																				AND shop_id = {$body['values']['shop_id']}
+ 																				AND event = 'recone_click'
+ 																				AND object_type = 'VendorCampaign'
+ 																				AND date >= '{$date}'");
 
 		//Если нашлись компании вендоров
 		if( !empty($campaigns) ) {
@@ -171,12 +175,42 @@ class Processor {
 	protected function actionsProcessor($body) {
 
 		//Если было событие просмотра товара и указан, что пришел из рекомендера
-		//пробуем найти событие recone_view которое добавляется при генерации рекомендации
+		//Пробуем найти событие recone_view которое добавляется при генерации рекомендации
+		//Если событие просмотра было найдено и нашлась кампания, добавляем, что клиент кликнул по нашему баннеру
 		if( $body['values']['event'] == 'view' && $body['values']['recommended_by'] ) {
 
 			//Дата выборки
 			$date = date('Y-m-d', strtotime('-2 HOUR'));
 			$dateTime = date('Y-m-d H:i:s', strtotime('-2 HOUR'));
+
+			//Получаем последнюю
+			$campaigns = $this->cli->get("SELECT object_id, brand FROM actions WHERE session_id = {$body['values']['session_id']} 
+																					AND shop_id = {$body['values']['shop_id']}
+																					AND event = 'recone_view'
+																					AND object_type = 'VendorCampaign'
+																					AND recommended_by = '{$body['values']['recommended_by']}'
+																					AND brand = '{$body['values']['brand']}'
+																					AND date >= '{$date}'
+																					AND created_at >= '{$dateTime}'
+																					LIMIT 1");
+
+			//Если нашлись компании вендоров
+			if( !empty($campaigns) ) {
+				foreach($campaigns as $campaign) {
+					$this->cli->insert('actions', [
+						'session_id'           => $body['values']['session_id'],
+						'current_session_code' => $body['opts']['current_session_code'] ?? '',
+						'shop_id'              => $body['values']['shop_id'],
+						'event'                => 'recone_click',
+						'object_type'          => 'VendorCampaign',
+						'object_id'            => $campaign->object_id,
+						'price'                => $body['values']['price'] * $body['values']['amount'],
+						'recommended_by'       => $body['values']['recommended_by'],
+						'referer'              => $body['opts']['referer'] ?? '',
+						'useragent'            => $body['opts']['useragent'] ?? '',
+					]);
+				}
+			}
 		}
 	}
 }
