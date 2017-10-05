@@ -37,8 +37,10 @@ class Logger {
 		if( !file_exists($log_file) ) {
 			file_put_contents($log_file, '');
 		}
-		$cli->output->add('logger', new File($log_file));
-		$cli->output->defaultTo('logger');
+		if( $cli->arguments->get('daemon') ) {
+			$cli->output->add('logger', new File($log_file));
+			$cli->output->defaultTo('logger');
+		}
 	}
 
 	/**

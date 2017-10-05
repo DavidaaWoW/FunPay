@@ -89,7 +89,7 @@ class Processor {
 			try {
 				$this->tableProcessor($body);
 			} catch(\Exception $e) {
-				$this->logger->error($e->getMessage());
+				$this->logger->error($e->getMessage() . $e->getTraceAsString());
 			}
 
 			//Отвечаем, что успешно
@@ -99,9 +99,9 @@ class Processor {
 			sleep(1);
 			$this->channel->basic_reject($tag, true);
 		} catch (\Exception $e) {
+			$this->logger->error($e->getMessage() . $e->getTraceAsString());
 			sleep(1);
 			$this->channel->basic_reject($tag, true);
-			throw $e;
 		}
 	}
 

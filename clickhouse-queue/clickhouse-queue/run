@@ -18,6 +18,11 @@ if (!class_exists('Composer\Autoload\ClassLoader', false)) {
 
 $cli = new CLImate();
 $cli->arguments->add([
+	'daemon'     => [
+		'prefix'       => 'd',
+		'description'  => 'Run as daemon',
+		'noValue'     => true,
+	],
 	'log'     => [
 		'prefix'       => 'l',
 		'longPrefix'   => 'log',
