@@ -189,7 +189,7 @@ class Processor {
 																					AND event = 'recone_view'
 																					AND object_type = 'VendorCampaign'
 																					AND recommended_by = '{$body['values']['recommended_by']}'
-																					AND brand = '{$body['values']['brand']}'
+																					AND brand = '" . addslashes($body['values']['brand']) . "'
 																					AND date >= '{$date}'
 																					AND created_at >= '{$dateTime}'
 																					LIMIT 1");
