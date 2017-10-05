@@ -199,15 +199,16 @@ class Processor {
 				foreach($campaigns as $campaign) {
 					$this->cli->insert('actions', [
 						'session_id'           => $body['values']['session_id'],
-						'current_session_code' => $body['opts']['current_session_code'] ?? '',
+						'current_session_code' => $body['values']['current_session_code'] ?? '',
 						'shop_id'              => $body['values']['shop_id'],
 						'event'                => 'recone_click',
 						'object_type'          => 'VendorCampaign',
 						'object_id'            => $campaign->object_id,
 						'price'                => $body['values']['price'] * $body['values']['amount'],
+						'brand'                => $body['values']['brand'],
 						'recommended_by'       => $body['values']['recommended_by'],
-						'referer'              => $body['opts']['referer'] ?? '',
-						'useragent'            => $body['opts']['useragent'] ?? '',
+						'referer'              => $body['values']['referer'] ?? '',
+						'useragent'            => $body['values']['useragent'] ?? '',
 					]);
 				}
 			}
