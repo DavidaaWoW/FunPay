@@ -61,6 +61,14 @@ namespace :deploy do
     end
   end
 
+  task :log do
+    on roles(:app), in: :sequence, wait: 5 do
+      within release_path do
+        execute "cd #{current_path}; tail -n 20 log/clickhouse.log"
+      end
+    end
+  end
+
   namespace :composer do
     desc 'Composer install requires'
     task :install do

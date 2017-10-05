@@ -112,6 +112,11 @@ class Processor {
 	protected function tableProcessor($body) {
 		switch( $body['table'] ) {
 
+			//Таблица событий
+			case 'actions':
+				$this->actionsProcessor($body);
+				break;
+
 			//Таблица заказов
 			case 'order_items':
 				$this->orderItemProcessor($body);
@@ -156,6 +161,22 @@ class Processor {
 					]);
 				}
 			}
+		}
+	}
+
+	/**
+	 * Обработчик таблицы событий
+	 * @param $body
+	 */
+	protected function actionsProcessor($body) {
+
+		//Если было событие просмотра товара и указан, что пришел из рекомендера
+		//пробуем найти событие recone_view которое добавляется при генерации рекомендации
+		if( $body['values']['event'] == 'view' && $body['values']['recommended_by'] ) {
+
+			//Дата выборки
+			$date = date('Y-m-d', strtotime('-2 HOUR'));
+			$dateTime = date('Y-m-d H:i:s', strtotime('-2 HOUR'));
 		}
 	}
 }
