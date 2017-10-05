@@ -130,8 +130,8 @@ class Processor {
 	 */
 	protected function orderItemProcessor($body) {
 
-		//Если дополнительные параметры не указаны, выходим
-		if( empty($body['opts']) ) {
+		//Если дополнительные параметры или бренд не указаны, выходим
+		if( empty($body['opts']) || empty($body['values']['brand']) ) {
 			return;
 		}
 
@@ -139,10 +139,12 @@ class Processor {
 		$date = date('Y-m-d', strtotime('-2 DAYS'));
 
 		//Получаем список компаний
-		$campaigns = $this->cli->get("SELECT object_id, brand FROM actions WHERE session_id = {$body['values']['session_id']}
+		$campaigns = $this->cli->get("SELECT object_id, brand FROM recone_actions WHERE session_id = {$body['values']['session_id']}
  																				AND shop_id = {$body['values']['shop_id']}
- 																				AND event = 'recone_click'
+ 																				AND event = 'click'
+ 																				AND item_id = '{$body['values']['item_uniqid']}'
  																				AND object_type = 'VendorCampaign'
+ 																				AND brand = '" . addslashes($body['values']['brand']) . "'
  																				AND date >= '{$date}'");
 
 		//Если нашлись компании вендоров
@@ -151,17 +153,17 @@ class Processor {
 
 				//Если бренды совпадают
 				if( mb_strtolower($campaign->brand) == mb_strtolower($body['values']['brand']) ) {
-					$this->cli->insert('actions', [
+					$this->cli->insert('recone_actions', [
 						'session_id'           => $body['values']['session_id'],
 						'current_session_code' => $body['opts']['current_session_code'] ?? '',
 						'shop_id'              => $body['values']['shop_id'],
-						'event'                => 'recone_purchase',
+						'event'                => 'purchase',
+						'item_id'              => $body['values']['item_uniqid'],
 						'object_type'          => 'VendorCampaign',
 						'object_id'            => $campaign->object_id,
 						'price'                => $body['values']['price'] * $body['values']['amount'],
+						'brand'                => $body['values']['brand'],
 						'recommended_by'       => $body['values']['recommended_by'] ?? null,
-						'referer'              => $body['opts']['referer'] ?? '',
-						'useragent'            => $body['opts']['useragent'] ?? '',
 					]);
 				}
 			}
@@ -174,19 +176,20 @@ class Processor {
 	 */
 	protected function actionsProcessor($body) {
 
-		//Если было событие просмотра товара и указан, что пришел из рекомендера
+		//Если было событие просмотра товара и указан, что пришел из рекомендера и у товара есть бренд
 		//Пробуем найти событие recone_view которое добавляется при генерации рекомендации
 		//Если событие просмотра было найдено и нашлась кампания, добавляем, что клиент кликнул по нашему баннеру
-		if( $body['values']['event'] == 'view' && $body['values']['recommended_by'] ) {
+		if( $body['values']['event'] == 'view' && $body['values']['object_type'] == 'Item' && $body['values']['recommended_by'] && $body['values']['brand'] ) {
 
 			//Дата выборки
 			$date = date('Y-m-d', strtotime('-2 HOUR'));
 			$dateTime = date('Y-m-d H:i:s', strtotime('-2 HOUR'));
 
 			//Получаем последнюю
-			$campaigns = $this->cli->get("SELECT object_id, brand FROM actions WHERE session_id = {$body['values']['session_id']} 
+			$campaigns = $this->cli->get("SELECT object_id, brand FROM recone_actions WHERE session_id = {$body['values']['session_id']} 
 																					AND shop_id = {$body['values']['shop_id']}
-																					AND event = 'recone_view'
+																					AND event = 'view'
+																					AND item_id = '{$body['values']['object_id']}'
 																					AND object_type = 'VendorCampaign'
 																					AND recommended_by = '{$body['values']['recommended_by']}'
 																					AND brand = '" . addslashes($body['values']['brand']) . "'
@@ -197,19 +200,22 @@ class Processor {
 			//Если нашлись компании вендоров
 			if( !empty($campaigns) ) {
 				foreach($campaigns as $campaign) {
-					$this->cli->insert('actions', [
-						'session_id'           => $body['values']['session_id'],
-						'current_session_code' => $body['values']['current_session_code'] ?? '',
-						'shop_id'              => $body['values']['shop_id'],
-						'event'                => 'recone_click',
-						'object_type'          => 'VendorCampaign',
-						'object_id'            => $campaign->object_id,
-						'price'                => $body['values']['price'] * $body['values']['amount'],
-						'brand'                => $body['values']['brand'],
-						'recommended_by'       => $body['values']['recommended_by'],
-						'referer'              => $body['values']['referer'] ?? '',
-						'useragent'            => $body['values']['useragent'] ?? '',
-					]);
+
+					//Если бренды совпадают
+					if( mb_strtolower($campaign->brand) == mb_strtolower($body['values']['brand']) ) {
+						$this->cli->insert('recone_actions', [
+							'session_id'           => $body['values']['session_id'],
+							'current_session_code' => $body['values']['current_session_code'] ?? '',
+							'shop_id'              => $body['values']['shop_id'],
+							'event'                => 'click',
+							'item_id'              => $body['values']['object_id'],
+							'object_type'          => 'VendorCampaign',
+							'object_id'            => $campaign->object_id,
+							'price'                => $body['values']['price'] * $body['values']['amount'],
+							'brand'                => $body['values']['brand'],
+							'recommended_by'       => $body['values']['recommended_by'],
+						]);
+					}
 				}
 			}
 		}

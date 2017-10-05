@@ -49,7 +49,8 @@ namespace :deploy do
   # поэтому нужно сначала запустить deploy:start
   task :restart do
     on roles(:app), in: :sequence, wait: 5 do
-      execute "cd #{release_path}; ./run restart -d"
+      execute "cd #{release_path}; ./run stop; sleep 1"
+      execute "cd #{release_path}; ./run start -d"
     end
   end
 
