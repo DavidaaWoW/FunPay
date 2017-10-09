@@ -80,5 +80,6 @@ namespace :deploy do
   end
 
   before 'deploy:updated', 'composer:install'
+  before 'deploy:updated', 'deploy:stop'
   after :log_revision, :restart
 end

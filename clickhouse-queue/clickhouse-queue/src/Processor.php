@@ -37,6 +37,11 @@ class Processor {
 	private $logger;
 
 	/**
+	 * @var GeoDetector
+	 */
+	private $geo_detector;
+
+	/**
 	 * Run daemon
 	 * @param Logger $logger
 	 * @param array $config
@@ -46,6 +51,9 @@ class Processor {
 		//Читаем конфиги
 		$this->config = $config;
 		$this->logger = $logger;
+
+		//Инициализируем определение местоположения
+		$this->geo_detector = new GeoDetector($config['geo']);
 
 		//Подключаемся к RabbitMQ
 		$this->connection = new AMQPStreamConnection($this->config['rabbit']['host'], $this->config['rabbit']['port'], $this->config['rabbit']['user'], $this->config['rabbit']['password']);
@@ -80,7 +88,7 @@ class Processor {
 	public function received($body, $tag) {
 		try {
 			//Делаем работу
-			$body = json_decode($body, true);
+			$body = $this->beforeTableProcessor(json_decode($body, true));
 
 			//Отправляем данные
 			$this->cli->insert($body['table'], $body['values']);
@@ -103,6 +111,24 @@ class Processor {
 			sleep(1);
 			$this->channel->basic_reject($tag, true);
 		}
+	}
+
+	/**
+	 * Дополняет данные при вставке в таблицу
+	 * @param array $body
+	 * @return array
+	 */
+	protected function beforeTableProcessor($body) {
+		switch( $body['table'] ) {
+
+			//Дополняем данными о местоположении по ip
+			case 'visits':
+				if( !empty($body['values']['ip']) ) {
+					$body['values'] = array_merge($body['values'], $this->geo_detector->detect($body['values']['ip']));
+				}
+				break;
+		}
+		return $body;
 	}
 
 	/**
