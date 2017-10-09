@@ -39,7 +39,7 @@ class GeoDetector {
 		$city = $this->city_reader->city($ip);
 
 		return [
-			'county'    => $this->country_reader->country($ip)->country->name ?: null,
+			'country'    => $this->country_reader->country($ip)->country->name ?: null,
 			'city'      => $city->city->name ?: null,
 			'latitude'  => $city->location->latitude,
 			'longitude' => $city->location->longitude,

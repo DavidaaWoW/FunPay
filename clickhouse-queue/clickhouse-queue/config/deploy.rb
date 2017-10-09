@@ -49,8 +49,7 @@ namespace :deploy do
   # поэтому нужно сначала запустить deploy:start
   task :restart do
     on roles(:app), in: :sequence, wait: 5 do
-      execute "cd #{release_path}; ./run stop; sleep 1"
-      execute "cd #{release_path}; ./run start -d"
+      execute "cd #{release_path}; ./run restart -d"
     end
   end
 
@@ -79,7 +78,7 @@ namespace :deploy do
     end
   end
 
+  before 'deploy:starting', 'deploy:stop'
   before 'deploy:updated', 'composer:install'
-  before 'deploy:updated', 'deploy:stop'
   after :log_revision, :restart
 end
