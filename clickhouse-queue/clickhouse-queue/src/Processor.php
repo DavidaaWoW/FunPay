@@ -187,7 +187,8 @@ class Processor {
 						'item_id'              => $body['values']['item_uniqid'],
 						'object_type'          => 'VendorCampaign',
 						'object_id'            => $campaign->object_id,
-						'price'                => $body['values']['price'] * $body['values']['amount'],
+						'price'                => $body['values']['price'],
+						'amount'               => $body['values']['amount'] ?? 1,
 						'brand'                => $body['values']['brand'],
 						'recommended_by'       => $body['values']['recommended_by'] ?? null,
 					]);
@@ -237,7 +238,7 @@ class Processor {
 							'item_id'              => $body['values']['object_id'],
 							'object_type'          => 'VendorCampaign',
 							'object_id'            => $campaign->object_id,
-							'price'                => $body['values']['price'] * $body['values']['amount'],
+							'price'                => $body['values']['price'],
 							'brand'                => $body['values']['brand'],
 							'recommended_by'       => $body['values']['recommended_by'],
 						]);
