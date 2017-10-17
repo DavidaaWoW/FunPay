@@ -3,6 +3,7 @@
 namespace REES46\ClickHouse;
 
 use GeoIp2\Database\Reader;
+use GeoIp2\Exception\AddressNotFoundException;
 
 /**
  * Class GeoDetector
@@ -36,13 +37,19 @@ class GeoDetector {
 	 * @return array
 	 */
 	public function detect($ip) {
-		$city = $this->city_reader->city($ip);
+		try {
+			$city = $this->city_reader->city($ip);
+			$country = $this->country_reader->country($ip)->country->name;
+		} catch (AddressNotFoundException $e) {
+			$city = null;
+			$country = null;
+		}
 
 		return [
-			'country'    => $this->country_reader->country($ip)->country->name ?: null,
+			'country'    => $country,
 			'city'      => $city->city->name ?: null,
-			'latitude'  => $city->location->latitude,
-			'longitude' => $city->location->longitude,
+			'latitude'  => $city->location->latitude ?: null,
+			'longitude' => $city->location->longitude ?: null,
 		];
 	}
 }
