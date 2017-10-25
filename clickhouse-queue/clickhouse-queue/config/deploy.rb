@@ -1,6 +1,3 @@
-role :web, '148.251.91.107'
-role :app, '148.251.91.107'
-
 set :application, 'rees46_clickhouse_queue'
 
 set :linked_files, ['config/secrets.ini']
@@ -78,7 +75,7 @@ namespace :deploy do
     end
   end
 
-  before 'deploy:starting', 'deploy:stop'
+  #before 'deploy:starting', 'deploy:stop'
   before 'deploy:updated', 'composer:install'
   after :log_revision, :restart
 end
