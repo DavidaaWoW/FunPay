@@ -75,7 +75,7 @@ namespace :deploy do
     end
   end
 
-  #before 'deploy:starting', 'deploy:stop'
+  before 'deploy:starting', 'deploy:stop'
   before 'deploy:updated', 'composer:install'
   after :log_revision, :restart
 end

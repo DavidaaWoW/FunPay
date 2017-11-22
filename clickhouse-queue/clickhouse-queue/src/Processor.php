@@ -140,6 +140,7 @@ class Processor {
 
 			//Таблица событий
 			case 'actions':
+			case 'actions_sharded':
 				$this->actionsProcessor($body);
 				break;
 
