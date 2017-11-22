@@ -47,6 +47,7 @@ class Processor {
 	 * @param array $config
 	 */
 	public function __construct(Logger $logger, $config) {
+		date_default_timezone_set('UTC');
 
 		//Читаем конфиги
 		$this->config = $config;
