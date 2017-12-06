@@ -129,9 +129,8 @@ class Processor {
 		$count = 0;
 		foreach( $this->queue as $table => $data ) {
 
-			//Если время последней вставки больше 30 секунд, сразу отправляем пачку
-			$this->logger->debug(getmypid() . '# table: ' . $table . ', data: ' . $data['time'] . ', now: ' . strtotime('-30 seconds') . ', count: ' . count($data['queue']));
-			if( $data['time'] < strtotime('-30 seconds') ) {
+			//Если время последней вставки больше 10 секунд, сразу отправляем пачку
+			if( $data['time'] < strtotime('-10 seconds') ) {
 				$this->queueProcessing($table);
 			} else {
 				$count += count($this->queue[$table]['queue']);
