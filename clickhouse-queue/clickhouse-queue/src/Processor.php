@@ -138,11 +138,11 @@ class Processor {
 		}
 
 		//Если очередь полная
-		if( $count == $this->batch_size ) {
+		if( $count >= $this->batch_size ) {
 			foreach( $this->queue as $table => $data ) {
 
 				//Выполняем для таблиц, которые заполнены хотябы на половину размера пачки
-				if( count($this->queue[$table]['queue']) >= $this->batch_size / 2 ) {
+				if( count($this->queue[$table]['queue']) > 1 ) {
 					$this->queueProcessing($table);
 				}
 			}
