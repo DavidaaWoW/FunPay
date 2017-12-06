@@ -142,7 +142,7 @@ class Processor {
 			foreach( $this->queue as $table => $data ) {
 
 				//Выполняем для таблиц, которые заполнены хотябы на половину размера пачки
-				if( count($this->queue[$table]['queue']) > 1 ) {
+				if( count($this->queue[$table]['queue']) > $this->batch_size / count($this->queue[$table]) * 0.25 ) {
 					$this->queueProcessing($table);
 				}
 			}
