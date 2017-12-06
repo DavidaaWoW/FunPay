@@ -44,7 +44,35 @@ class Cli {
 		$values = $this->format($table, $values);
 
 		//Строим строку вставки
-		$sql = sprintf('INSERT INTO %s (%s) VALUES (%s)', $table, implode(', ', array_keys($values)), implode(', ', $values));
+		$sql = sprintf('INSERT INTO %s (%s) VALUES (%s)', $table, implode(',', array_keys($values)), implode(',', $values));
+		$this->post($sql);
+	}
+
+	/**
+	 * Вставляет данные пачкой
+	 * @param $table
+	 * @param array $data
+	 * @throws ProcessorException
+	 */
+	public function bulkInsert($table, array $data) {
+
+		//Получаем список полей таблицы
+		$columns = null;
+		$insert_values = [];
+		foreach( $data as $body ) {
+
+			//Форматируем вставляемые данные
+			$values = $this->format($table, $body['values']);
+			if( $columns === null ) {
+				$columns = array_keys($values);
+			}
+
+			//Добавляем в общий массив
+			$insert_values[] = implode(',', $values);
+		}
+
+		//Строим строку вставки
+		$sql = sprintf('INSERT INTO %s (%s) VALUES (%s)', $table, implode(',', $columns), implode('), (', $insert_values));
 		$this->post($sql);
 	}
 
@@ -133,7 +161,7 @@ class Cli {
 	/**
 	 * Получает схему таблицы
 	 * @param $table
-	 * @return mixed
+	 * @return array
 	 */
 	private function schema($table) {
 		if( empty($this->schema[$table]) ) {

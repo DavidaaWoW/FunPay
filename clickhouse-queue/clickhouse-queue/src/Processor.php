@@ -3,6 +3,7 @@ namespace REES46\ClickHouse;
 
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PhpAmqpLib\Message\AMQPMessage;
 
 /**
  * ClickHouse Daemon
@@ -41,6 +42,9 @@ class Processor {
 	 */
 	private $geo_detector;
 
+	private $batch_size;
+	private $queue = [];
+
 	/**
 	 * Run daemon
 	 * @param Logger $logger
@@ -64,7 +68,8 @@ class Processor {
 		$this->channel->queue_declare('clickhouse', false, true, false, false);
 
 		//Устанавливаем что мы работаем в несколько потоков
-		$this->channel->basic_qos(null, 1, null);
+		$this->batch_size = $config['rabbit']['batch_size'] ?? 1;
+		$this->channel->basic_qos(null, $this->batch_size, true);
 
 		//Подписываем колбек функцию
 		$this->channel->basic_consume('clickhouse', getmypid(), false, false, false, false, function($message) {
@@ -91,26 +96,98 @@ class Processor {
 			//Делаем работу
 			$body = $this->beforeTableProcessor(json_decode($body, true));
 
-			//Отправляем данные
-			$this->cli->insert($body['table'], $body['values']);
+			//Проверяем очередь
+			if( !isset($this->queue[$body['table']]) ) {
+				$this->queue[$body['table']] = [
+					'time'  => null,
+					'queue' => [],
+				];
+			}
 
-			//Дополнительные алгоритмы при вставке в таблицу
+			//Добавляем в очередь
+//			$this->cli->insert($body['table'], $body['values']);
+			$this->queue[$body['table']]['time'] = time();
+			$this->queue[$body['table']]['queue'][$tag] = $body;
+
+			//Вызываем триггер на обработку массива очереди
+			$this->queueUpdated();
+
+		} catch (\Exception $e) {
+			$this->logger->error($e->getMessage() . $e->getTraceAsString());
+			sleep(1);
+			$this->channel->basic_reject($tag, true);
+			unset($this->queue[$body['table']]['queue'][$tag]);
+		}
+	}
+
+	/**
+	 * Обрабатывает внутреннюю очередь чтобы вставить данные пачкой
+	 */
+	protected function queueUpdated() {
+
+		//Проходим по внутренней очереди
+		$count = 0;
+		foreach( $this->queue as $table => $data ) {
+
+			//Если время последней вставки больше 30 секунд, сразу отправляем пачку
+			$this->logger->debug(getmypid() . '# table: ' . $table . ', data: ' . $data['time'] . ', now: ' . strtotime('-30 seconds') . ', count: ' . count($data['queue']));
+			if( $data['time'] < strtotime('-30 seconds') ) {
+				$this->queueProcessing($table);
+			} else {
+				$count += count($this->queue[$table]['queue']);
+			}
+		}
+
+		//Если очередь полная
+		if( $count == $this->batch_size ) {
+			foreach( $this->queue as $table => $data ) {
+
+				//Выполняем для таблиц, которые заполнены хотябы на половину размера пачки
+				if( count($this->queue[$table]['queue']) >= $this->batch_size / 2 ) {
+					$this->queueProcessing($table);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Запускает обработку очереди для указанной таблицы
+	 * @param $table
+	 */
+	protected function queueProcessing($table) {
+		//Копируем данные, чтобы во время обработки их не дополнили случайно
+		$bulk = (new \ArrayObject($this->queue[$table]['queue']))->getArrayCopy();
+		unset($this->queue[$table]);
+
+		try {
+			//Отправляем
+			$this->cli->bulkInsert($table, $bulk);
+
+			//Отвечаем, что успешно
+			foreach( array_keys($bulk) as $tag ) {
+				$this->channel->basic_ack($tag);
+			}
+		} catch (ProcessorException $e) {
+			$this->logger->error($e->getMessage());
+			sleep(1);
+			foreach( array_keys($bulk) as $tag ) {
+				$this->channel->basic_reject($tag, true);
+			}
+		} catch (\Exception $e) {
+			$this->logger->error($e->getMessage() . $e->getTraceAsString());
+			sleep(10);
+			foreach( array_keys($bulk) as $tag ) {
+				$this->channel->basic_reject($tag, true);
+			}
+		}
+
+		//Дополнительные алгоритмы при вставке в таблицу
+		foreach( $bulk as $body ) {
 			try {
 				$this->tableProcessor($body);
 			} catch(\Exception $e) {
 				$this->logger->error($e->getMessage() . $e->getTraceAsString());
 			}
-
-			//Отвечаем, что успешно
-			$this->channel->basic_ack($tag);
-		} catch (ProcessorException $e) {
-			$this->logger->error($e->getMessage());
-			sleep(1);
-			$this->channel->basic_reject($tag, true);
-		} catch (\Exception $e) {
-			$this->logger->error($e->getMessage() . $e->getTraceAsString());
-			sleep(1);
-			$this->channel->basic_reject($tag, true);
 		}
 	}
 
@@ -181,19 +258,25 @@ class Processor {
 
 				//Если бренды совпадают
 				if( mb_strtolower($campaign->brand) == mb_strtolower($body['values']['brand']) ) {
-					$this->cli->insert('recone_actions', [
-						'session_id'           => $body['values']['session_id'],
-						'current_session_code' => $body['opts']['current_session_code'] ?? '',
-						'shop_id'              => $body['values']['shop_id'],
-						'event'                => 'purchase',
-						'item_id'              => $body['values']['item_uniqid'],
-						'object_type'          => 'VendorCampaign',
-						'object_id'            => $campaign->object_id,
-						'price'                => $body['values']['price'],
-						'amount'               => $body['values']['amount'] ?? 1,
-						'brand'                => $body['values']['brand'],
-						'recommended_by'       => $body['values']['recommended_by'] ?? null,
-					]);
+
+					//Добавляем событие в очередь
+					$this->channel->basic_publish(new AMQPMessage(json_encode([
+						'table' => 'recone_actions',
+						'values' => [
+							'session_id'           => $body['values']['session_id'],
+							'current_session_code' => $body['opts']['current_session_code'] ?? '',
+							'shop_id'              => $body['values']['shop_id'],
+							'event'                => 'purchase',
+							'item_id'              => $body['values']['item_uniqid'],
+							'object_type'          => 'VendorCampaign',
+							'object_id'            => $campaign->object_id,
+							'price'                => $body['values']['price'],
+							'amount'               => $body['values']['amount'] ?? 1,
+							'brand'                => $body['values']['brand'],
+							'recommended_by'       => $body['values']['recommended_by'] ?? null,
+						],
+						'opts' => [],
+					])), '', 'clickhouse');
 				}
 			}
 		}
@@ -233,19 +316,25 @@ class Processor {
 
 					//Если бренды совпадают
 					if( mb_strtolower($campaign->brand) == mb_strtolower($body['values']['brand']) ) {
-						$this->cli->insert('recone_actions', [
-							'session_id'           => $body['values']['session_id'],
-							'current_session_code' => $body['values']['current_session_code'] ?? '',
-							'shop_id'              => $body['values']['shop_id'],
-							'event'                => 'click',
-							'item_id'              => $body['values']['object_id'],
-							'object_type'          => 'VendorCampaign',
-							'object_id'            => $campaign->object_id,
-							'object_price'         => $campaign->object_price,
-							'price'                => $body['values']['price'],
-							'brand'                => $body['values']['brand'],
-							'recommended_by'       => $body['values']['recommended_by'],
-						]);
+
+						//Добавляем событие в очередь
+						$this->channel->basic_publish(new AMQPMessage(json_encode([
+							'table' => 'recone_actions',
+							'values' => [
+								'session_id'           => $body['values']['session_id'],
+								'current_session_code' => $body['values']['current_session_code'] ?? '',
+								'shop_id'              => $body['values']['shop_id'],
+								'event'                => 'click',
+								'item_id'              => $body['values']['object_id'],
+								'object_type'          => 'VendorCampaign',
+								'object_id'            => $campaign->object_id ?? -1,
+								'object_price'         => $campaign->object_price ?? -1,
+								'price'                => $body['values']['price'],
+								'brand'                => $body['values']['brand'],
+								'recommended_by'       => $body['values']['recommended_by'],
+							],
+							'opts' => [],
+						])), '', 'clickhouse');
 					}
 				}
 			}

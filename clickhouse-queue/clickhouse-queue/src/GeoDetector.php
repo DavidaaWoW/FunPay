@@ -47,9 +47,9 @@ class GeoDetector {
 
 		return [
 			'country'    => $country,
-			'city'      => $city->city->name ?: null,
-			'latitude'  => $city->location->latitude ?: null,
-			'longitude' => $city->location->longitude ?: null,
+			'city'      => $city->city->name ?? null,
+			'latitude'  => $city->location->latitude ?? null,
+			'longitude' => $city->location->longitude ?? null,
 		];
 	}
 }
