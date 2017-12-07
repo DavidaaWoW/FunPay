@@ -57,31 +57,15 @@ class Cli {
 	public function bulkInsert($table, array $data) {
 
 		//Получаем список полей таблицы
-		$columns = array_keys($this->schema($table));
+		$columns = null;
 		$insert_values = [];
 		foreach( $data as $body ) {
 
-			$value = [];
-			foreach( $columns as $column ) {
-				//Если есть данные колонки
-				if( isset($body['values'][$column]) ) {
-					$value[$column] = $body['values'][$column];
-				} else {
-					switch($column) {
-						case 'created_at':
-							$value[$column] = date('Y-m-d H:i:s');
-							break;
-						case 'date':
-							$value[$column] = date('Y-m-d');
-							break;
-						default:
-							$value[$column] = 'NULL';
-					}
-				}
-			}
-
 			//Форматируем вставляемые данные
-			$values = $this->format($table, $value);
+			$values = $this->format($table, $body['values']);
+			if( $columns === null ) {
+				$columns = array_keys($values);
+			}
 
 			//Добавляем в общий массив
 			$insert_values[] = implode(',', $values);
@@ -91,6 +75,7 @@ class Cli {
 		$sql = sprintf('INSERT INTO %s (%s) VALUES (%s)', $table, implode(',', $columns), implode('), (', $insert_values));
 		$this->post($sql);
 	}
+
 
 	/**
 	 * Отправляет данные
