@@ -33,6 +33,11 @@ class Processor {
 	private $cli;
 
 	/**
+	 * @var Cli
+	 */
+	private $cli2;
+
+	/**
 	 * @var Logger
 	 */
 	private $logger;
@@ -78,6 +83,7 @@ class Processor {
 
 		//Подключаемся к кликхаусу
 		$this->cli = new Cli($this->config['clickhouse'], $this->logger);
+		$this->cli2 = new Cli($this->config['clickhouse2'], $this->logger);
 
 		//Ожидаем очередь
 		while(count($this->channel->callbacks)) {
@@ -159,8 +165,15 @@ class Processor {
 		unset($this->queue[$table]);
 
 		try {
-			//Отправляем
-			$this->cli->bulkInsert($table, $bulk);
+			//Отправляем по разным серверам
+			switch($table) {
+				case 'visits':
+					$this->cli2->bulkInsert($table, $bulk);
+					break;
+
+				default:
+					$this->cli->bulkInsert($table, $bulk);
+			}
 
 			//Отвечаем, что успешно
 			foreach( array_keys($bulk) as $tag ) {

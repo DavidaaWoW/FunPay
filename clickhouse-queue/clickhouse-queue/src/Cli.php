@@ -16,6 +16,11 @@ class Cli {
 	private $ch;
 
 	/**
+	 * @var String
+	 */
+	private $host;
+
+	/**
 	 * Схема таблиц
 	 * @var array
 	 */
@@ -24,9 +29,11 @@ class Cli {
 	/**
 	 * Cli constructor.
 	 * @param array $config
+	 * @param Logger $logger
 	 */
-	public function __construct($config, $logger) {
+	public function __construct($config, Logger $logger) {
 		$this->logger = $logger;
+		$this->host = $config['host'];
 		$this->ch = curl_init();
 		curl_setopt($this->ch, CURLOPT_URL, "http://{$config['host']}:{$config['port']}/?database={$config['database']}");
 		curl_setopt($this->ch, CURLOPT_POST, 1);
@@ -135,7 +142,7 @@ class Cli {
 		$code = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
 
 		if( $code >= 400 || $code < 200 ) {
-			throw new ProcessorException('[CODE: ' . $code . '] SQL: ' . $sql . PHP_EOL . trim($response));
+			throw new ProcessorException('[CODE: ' . $code . ', ' . $this->host . '] SQL: ' . $sql . PHP_EOL . trim($response));
 		}
 
 		return $response;
