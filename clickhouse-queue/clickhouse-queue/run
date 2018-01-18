@@ -21,7 +21,7 @@ $cli->arguments->add([
 	'daemon'     => [
 		'prefix'       => 'd',
 		'description'  => 'Run as daemon',
-		'noValue'     => true,
+		'noValue'     => false,
 	],
 	'log'     => [
 		'prefix'       => 'l',

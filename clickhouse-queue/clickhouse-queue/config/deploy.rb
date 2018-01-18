@@ -32,6 +32,7 @@ namespace :deploy do
     on roles(:app), in: :sequence, wait: 5 do
       within release_path do
         execute "cd #{current_path}; ./run start -d"
+        #execute "sudo /usr/bin/supervisorctl start rees46_clickhouse_queue"
       end
     end
   end
@@ -39,6 +40,7 @@ namespace :deploy do
   task :stop do
     on roles(:web), in: :sequence, wait: 5 do
       execute "cd #{release_path}; ./run stop"
+      #execute "sudo /usr/bin/supervisorctl start clickhouse_queue"
     end
   end
 
@@ -47,6 +49,8 @@ namespace :deploy do
   task :restart do
     on roles(:app), in: :sequence, wait: 5 do
       execute "cd #{release_path}; ./run restart -d"
+      #execute "sudo /usr/bin/supervisorctl restart clickhouse_queue"
+  
     end
   end
 
@@ -54,6 +58,7 @@ namespace :deploy do
     on roles(:app), in: :sequence, wait: 5 do
       within release_path do
         execute "cd #{current_path}; ./run status"
+       #execute "sudo /usr/bin/supervisorctl status clickhouse_queue"
       end
     end
   end
