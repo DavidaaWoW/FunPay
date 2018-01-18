@@ -57,8 +57,8 @@ namespace :deploy do
   task :status do
     on roles(:app), in: :sequence, wait: 5 do
       within release_path do
-        execute "cd #{current_path}; ./run status"
-       #execute "sudo /usr/bin/supervisorctl status clickhouse_queue"
+        #execute "cd #{current_path}; ./run status"
+        execute "sudo /usr/bin/supervisorctl status clickhouse_queue"
       end
     end
   end
