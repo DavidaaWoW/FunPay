@@ -321,8 +321,7 @@ class Processor {
 																					AND brand = '" . addslashes($body['values']['brand']) . "'
 																					AND date >= '{$date}'
 																					AND created_at >= '{$dateTime}'
-																					ORDER BY created_at DESC
-																					LIMIT 1");
+																					ORDER BY created_at DESC");
 
 			//Если нашлись компании вендоров
 			if( !empty($campaigns) ) {

@@ -40,7 +40,7 @@ namespace :deploy do
   task :stop do
     on roles(:web), in: :sequence, wait: 5 do
       #execute "cd #{release_path}; ./run stop"
-      execute "sudo /usr/bin/supervisorctl start clickhouse_queue"
+      execute "sudo /usr/bin/supervisorctl stop clickhouse_queue"
     end
   end
 
