@@ -82,5 +82,5 @@ namespace :deploy do
 
   before 'deploy:starting', 'deploy:stop'
   before 'deploy:updated', 'composer:install'
-  after :log_revision, :restart
+  after :log_revision, :start
 end

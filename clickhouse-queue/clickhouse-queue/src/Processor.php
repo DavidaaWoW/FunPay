@@ -256,7 +256,7 @@ class Processor {
 		$date = date('Y-m-d', strtotime('-2 DAYS'));
 
 		//Получаем список компаний
-		$campaigns = $this->cli->get("SELECT object_id, brand FROM recone_actions WHERE session_id = {$body['values']['session_id']}
+		$campaigns = $this->cli->get("SELECT DISTINCT object_id, brand FROM recone_actions WHERE session_id = {$body['values']['session_id']}
  																				AND shop_id = {$body['values']['shop_id']}
  																				AND event = 'click'
  																				AND item_id = '{$body['values']['item_uniqid']}'
