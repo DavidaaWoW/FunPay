@@ -312,7 +312,7 @@ class Processor {
 			$dateTime = date('Y-m-d H:i:s', strtotime('-2 HOUR'));
 
 			//Получаем последнюю. Если будут проблемы с простановкой флага recommended_by при просмотре товара, просто убрать фильтрацию и брать recommended_by из события.
-			$campaigns = $this->cli->get("SELECT object_id, object_price, brand FROM recone_actions WHERE session_id = {$body['values']['session_id']} 
+			$campaigns = $this->cli->get("SELECT DISTINCT object_id, object_price, brand FROM recone_actions WHERE session_id = {$body['values']['session_id']} 
 																					AND shop_id = {$body['values']['shop_id']}
 																					AND event = 'view'
 																					AND item_id = '{$body['values']['object_id']}'
