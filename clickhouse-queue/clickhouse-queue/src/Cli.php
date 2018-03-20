@@ -44,8 +44,16 @@ class Cli {
 	/**
 	 * @param string $table
 	 * @param array $values
+	 * @throws ProcessorException
 	 */
 	public function insert($table, array $values) {
+
+		if( empty($values['date']) ) {
+			$values['date'] = date('Y-m-d');
+		}
+		if( empty($values['created_at']) ) {
+			$values['created_at'] = date('Y-m-d H:i:s');
+		}
 
 		//Форматируем вставляемые данные
 		$values = $this->format($table, $values);
@@ -67,6 +75,13 @@ class Cli {
 		$columns = null;
 		$insert_values = [];
 		foreach( $data as $body ) {
+
+			if( empty($body['values']['date']) ) {
+				$body['values']['date'] = date('Y-m-d');
+			}
+			if( empty($body['values']['created_at']) ) {
+				$body['values']['created_at'] = date('Y-m-d H:i:s');
+			}
 
 			//Форматируем вставляемые данные
 			$values = $this->format($table, $body['values']);
@@ -98,6 +113,7 @@ class Cli {
 	 * Получение данных
 	 * @param $sql
 	 * @return null|\stdClass
+	 * @throws ProcessorException
 	 */
 	public function get($sql) {
 		$result = json_decode($this->sql(preg_replace('/(\n|\t+)/', ' ', $sql) . ' FORMAT JSON'));
@@ -151,8 +167,9 @@ class Cli {
 	/**
 	 * Преобразует все данные в формат таблицы
 	 * @param string $table
-	 * @param array  $values
+	 * @param array $values
 	 * @return array
+	 * @throws ProcessorException
 	 */
 	private function format($table, array $values) {
 
@@ -170,6 +187,7 @@ class Cli {
 	 * Получает схему таблицы
 	 * @param $table
 	 * @return array
+	 * @throws ProcessorException
 	 */
 	private function schema($table) {
 		if( empty($this->schema[$table]) ) {
