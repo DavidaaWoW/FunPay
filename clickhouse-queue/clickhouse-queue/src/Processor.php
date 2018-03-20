@@ -168,6 +168,7 @@ class Processor {
 			//Отправляем по разным серверам
 			switch($table) {
 				case 'visits':
+				case 'recone_actions':
 					$this->cli2->bulkInsert($table, $bulk);
 					break;
 
