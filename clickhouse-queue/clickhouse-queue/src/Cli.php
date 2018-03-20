@@ -76,11 +76,11 @@ class Cli {
 		$insert_values = [];
 		foreach( $data as $body ) {
 
-			if( empty($body['values']['date']) ) {
-				$body['values']['date'] = date('Y-m-d');
-			}
 			if( empty($body['values']['created_at']) ) {
 				$body['values']['created_at'] = date('Y-m-d H:i:s');
+			}
+			if( empty($body['values']['date']) ) {
+				$body['values']['date'] = date('Y-m-d');
 			}
 
 			//Форматируем вставляемые данные
