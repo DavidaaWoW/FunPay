@@ -150,7 +150,7 @@ class Cli {
 	 * @throws ProcessorException
 	 */
 	private function sql($sql) {
-		$this->logger->debug('SQL: ' . substr($sql, 0, 255));
+		$this->logger->debug('SQL: ' . substr($sql, 0, 500));
 
 		//Отправляем данные
 		curl_setopt($this->ch, CURLOPT_POSTFIELDS, $sql);
@@ -158,7 +158,7 @@ class Cli {
 		$code = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
 
 		if( $code >= 400 || $code < 200 ) {
-			throw new ProcessorException('[CODE: ' . $code . ', ' . $this->host . '] SQL: ' . substr($sql, 0, 255) . PHP_EOL . trim($response));
+			throw new ProcessorException('[CODE: ' . $code . ', ' . $this->host . '] SQL: ' . substr($sql, 0, 500) . PHP_EOL . trim($response));
 		}
 
 		return $response;
