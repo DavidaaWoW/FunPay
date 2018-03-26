@@ -4,6 +4,7 @@ namespace REES46\ClickHouse;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
+use REQRequest\Rabbitmq;
 
 /**
  * ClickHouse Daemon
@@ -227,6 +228,7 @@ class Processor {
 	/**
 	 * Обработчик
 	 * @param array $body
+	 * @throws ProcessorException
 	 */
 	protected function tableProcessor($body) {
 		switch( $body['table'] ) {
@@ -247,6 +249,7 @@ class Processor {
 	/**
 	 * Обработчик таблицы заказа
 	 * @param array $body
+	 * @throws ProcessorException
 	 */
 	protected function orderItemProcessor($body) {
 
@@ -302,17 +305,20 @@ class Processor {
 	/**
 	 * Обработчик таблицы событий
 	 * @param $body
+	 * @throws ProcessorException
 	 */
 	protected function actionsProcessor($body) {
+
+		//Дата выборки
+		$date = date('Y-m-d', strtotime('-2 HOUR'));
+		$dateTime = date('Y-m-d H:i:s', strtotime('-2 HOUR'));
 
 		//Если было событие просмотра товара и указан, что пришел из рекомендера и у товара есть бренд
 		//Пробуем найти событие recone_view которое добавляется при генерации рекомендации
 		//Если событие просмотра было найдено и нашлась кампания, добавляем, что клиент кликнул по нашему баннеру
-		if( $body['values']['event'] == 'view' && $body['values']['object_type'] == 'Item' && $body['values']['recommended_by'] && $body['values']['brand'] ) {
-
-			//Дата выборки
-			$date = date('Y-m-d', strtotime('-2 HOUR'));
-			$dateTime = date('Y-m-d H:i:s', strtotime('-2 HOUR'));
+		//---
+		//Для события корзины или покупки, проверяем, если не было события клика, а сразу добавлен в корзину или куплен в один клик, добавляем клик.
+		if( in_array($body['values']['event'], ['view', 'cart', 'purchase']) && $body['values']['object_type'] == 'Item' && $body['values']['recommended_by'] && $body['values']['brand'] ) {
 
 			//Получаем последнюю. Если будут проблемы с простановкой флага recommended_by при просмотре товара, просто убрать фильтрацию и брать recommended_by из события.
 			$campaigns = $this->cli->get("SELECT DISTINCT object_id, object_price, brand FROM recone_actions WHERE session_id = {$body['values']['session_id']} 
@@ -333,26 +339,64 @@ class Processor {
 					//Если бренды совпадают
 					if( mb_strtolower($campaign->brand) == mb_strtolower($body['values']['brand']) ) {
 
+						//Если событие просмотра товара, то разрешаем добавлять клик
+						$access = $body['values']['event'] == 'view';
+
+						//Если событие корзины или покупки
+						if( in_array($body['values']['event'], ['cart', 'purchase']) ) {
+
+							try {
+								$request = new Rabbitmq($this->config['rabbit']['user'], $this->config['rabbit']['password'], $this->config['rabbit']['host']);
+								$result = $request->getQueueInfo('/', 'clickhouse');
+								$this->logger->info('Queue: ' . $result['messages']);
+
+								//Проверяем, чтобы в очереди было мало записей, чтобы не дублировать клики, когда у нас проблемы.
+								if( $result['messages'] < 1000 ) {
+									$actions = $this->cli->get("SELECT 1 FROM recone_actions WHERE session_id = {$body['values']['session_id']} 
+																								AND shop_id = {$body['values']['shop_id']}
+																								AND event = 'click'
+																								AND item_id = '{$body['values']['object_id']}'
+																								AND object_type = 'VendorCampaign'
+																								AND object_id = '{$campaign->object_id}'
+																								AND recommended_by = '{$body['values']['recommended_by']}'
+																								AND brand = '" . addslashes($body['values']['brand']) . "'
+																								AND date >= '{$date}'
+																								AND created_at >= '{$dateTime}'
+																								ORDER BY created_at DESC");
+
+									//Если вернулся пустой результат, добавляем событие клика
+									$access = empty($actions);
+								} else {
+									$access = false;
+								}
+							} catch (\Exception $e) {
+								$this->logger->error($e->getMessage() . ' ' . $e->getTraceAsString());
+								$access = false;
+							}
+						}
+
 						//Добавляем событие в очередь
-						$this->channel->basic_publish(new AMQPMessage(json_encode([
-							'table' => 'recone_actions',
-							'values' => [
-								'session_id'           => $body['values']['session_id'],
-								'current_session_code' => $body['values']['current_session_code'] ?? '',
-								'shop_id'              => $body['values']['shop_id'],
-								'event'                => 'click',
-								'item_id'              => $body['values']['object_id'],
-								'object_type'          => 'VendorCampaign',
-								'object_id'            => $campaign->object_id ?? -1,
-								'object_price'         => $campaign->object_price ?? -1,
-								'price'                => $body['values']['price'],
-								'amount'               => 1,
-								'brand'                => $body['values']['brand'],
-								'recommended_by'       => $body['values']['recommended_by'],
-								'referer'              => null,
-							],
-							'opts' => [],
-						])), '', 'clickhouse');
+						if( $access ) {
+							$this->channel->basic_publish(new AMQPMessage(json_encode([
+								'table'  => 'recone_actions',
+								'values' => [
+									'session_id'           => $body['values']['session_id'],
+									'current_session_code' => $body['values']['current_session_code'] ?? '',
+									'shop_id'              => $body['values']['shop_id'],
+									'event'                => 'click',
+									'item_id'              => $body['values']['object_id'],
+									'object_type'          => 'VendorCampaign',
+									'object_id'            => $campaign->object_id ?? -1,
+									'object_price'         => $campaign->object_price ?? -1,
+									'price'                => $body['values']['price'],
+									'amount'               => 1,
+									'brand'                => $body['values']['brand'],
+									'recommended_by'       => $body['values']['recommended_by'],
+									'referer'              => null,
+								],
+								'opts'   => [],
+							])), '', 'clickhouse');
+						}
 					}
 				}
 			}

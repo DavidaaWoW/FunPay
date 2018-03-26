@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "f6842ad719370438438c4308e28ff2f9",
+    "content-hash": "7649c6fdedefaf41feae1dd9706ce58a",
     "packages": [
         {
             "name": "composer/ca-bundle",
-            "version": "1.0.8",
+            "version": "1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/ca-bundle.git",
-                "reference": "9dd73a03951357922d8aee6cc084500de93e2343"
+                "reference": "943b2c4fcad1ef178d16a713c2468bf7e579c288"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/ca-bundle/zipball/9dd73a03951357922d8aee6cc084500de93e2343",
-                "reference": "9dd73a03951357922d8aee6cc084500de93e2343",
+                "url": "https://api.github.com/repos/composer/ca-bundle/zipball/943b2c4fcad1ef178d16a713c2468bf7e579c288",
+                "reference": "943b2c4fcad1ef178d16a713c2468bf7e579c288",
                 "shasum": ""
             },
             "require": {
@@ -26,12 +26,9 @@
                 "php": "^5.3.2 || ^7.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "^4.5",
+                "phpunit/phpunit": "^4.8.35",
                 "psr/log": "^1.0",
-                "symfony/process": "^2.5 || ^3.0"
-            },
-            "suggest": {
-                "symfony/process": "This is necessary to reliably check whether openssl_x509_parse is vulnerable on older php versions, but can be ignored on PHP 5.5.6+"
+                "symfony/process": "^2.5 || ^3.0 || ^4.0"
             },
             "type": "library",
             "extra": {
@@ -63,20 +60,20 @@
                 "ssl",
                 "tls"
             ],
-            "time": "2017-09-11T07:24:36+00:00"
+            "time": "2017-11-29T09:37:33+00:00"
         },
         {
             "name": "geoip2/geoip2",
-            "version": "v2.6.0",
+            "version": "v2.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/maxmind/GeoIP2-php.git",
-                "reference": "9f6f1edf9901fed5cd692dd260333bf52091acd3"
+                "reference": "63b0d87d47ee8c9431bff70244401db5ced82bd9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/maxmind/GeoIP2-php/zipball/9f6f1edf9901fed5cd692dd260333bf52091acd3",
-                "reference": "9f6f1edf9901fed5cd692dd260333bf52091acd3",
+                "url": "https://api.github.com/repos/maxmind/GeoIP2-php/zipball/63b0d87d47ee8c9431bff70244401db5ced82bd9",
+                "reference": "63b0d87d47ee8c9431bff70244401db5ced82bd9",
                 "shasum": ""
             },
             "require": {
@@ -116,20 +113,20 @@
                 "geolocation",
                 "maxmind"
             ],
-            "time": "2017-07-10T17:59:43+00:00"
+            "time": "2018-01-18T21:30:24+00:00"
         },
         {
             "name": "league/climate",
-            "version": "3.2.1",
+            "version": "3.2.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/climate.git",
-                "reference": "b103fc8faa3780c802cc507d5f0ff534ecc94fb5"
+                "reference": "ca70f67f7739cca823eba0ad98f8130bca226bf0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/climate/zipball/b103fc8faa3780c802cc507d5f0ff534ecc94fb5",
-                "reference": "b103fc8faa3780c802cc507d5f0ff534ecc94fb5",
+                "url": "https://api.github.com/repos/thephpleague/climate/zipball/ca70f67f7739cca823eba0ad98f8130bca226bf0",
+                "reference": "ca70f67f7739cca823eba0ad98f8130bca226bf0",
                 "shasum": ""
             },
             "require": {
@@ -167,33 +164,34 @@
                 "php",
                 "terminal"
             ],
-            "time": "2016-04-04T20:24:59+00:00"
+            "time": "2016-10-30T22:18:25+00:00"
         },
         {
             "name": "maxmind-db/reader",
-            "version": "v1.1.3",
+            "version": "v1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/maxmind/MaxMind-DB-Reader-php.git",
-                "reference": "7eeccf61b078bb23bb07b1a151a7e5db52871e65"
+                "reference": "e042b4f8a2dff41e19019faf16427178b07fbd58"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/maxmind/MaxMind-DB-Reader-php/zipball/7eeccf61b078bb23bb07b1a151a7e5db52871e65",
-                "reference": "7eeccf61b078bb23bb07b1a151a7e5db52871e65",
+                "url": "https://api.github.com/repos/maxmind/MaxMind-DB-Reader-php/zipball/e042b4f8a2dff41e19019faf16427178b07fbd58",
+                "reference": "e042b4f8a2dff41e19019faf16427178b07fbd58",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.1"
+                "php": ">=5.4"
             },
             "require-dev": {
-                "phpunit/phpunit": "4.2.*",
+                "friendsofphp/php-cs-fixer": "2.*",
+                "phpunit/phpunit": "4.* || 5.*",
                 "satooshi/php-coveralls": "1.0.*",
-                "squizlabs/php_codesniffer": "2.*"
+                "squizlabs/php_codesniffer": "3.*"
             },
             "suggest": {
-                "ext-bcmath": "bcmath or gmp is requred for decoding larger integers with the pure PHP decoder",
-                "ext-gmp": "bcmath or gmp is requred for decoding larger integers with the pure PHP decoder",
+                "ext-bcmath": "bcmath or gmp is required for decoding larger integers with the pure PHP decoder",
+                "ext-gmp": "bcmath or gmp is required for decoding larger integers with the pure PHP decoder",
                 "ext-maxminddb": "A C-based database decoder that provides significantly faster lookups"
             },
             "type": "library",
@@ -222,20 +220,20 @@
                 "geolocation",
                 "maxmind"
             ],
-            "time": "2017-01-19T23:49:38+00:00"
+            "time": "2018-02-21T21:23:33+00:00"
         },
         {
             "name": "maxmind/web-service-common",
-            "version": "v0.4.0",
+            "version": "v0.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/maxmind/web-service-common-php.git",
-                "reference": "622f7c732a7f9c4c62497fc103939e042b6bdb88"
+                "reference": "61a9836fa3bb1743ab89752bae5005d71e78c73b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/maxmind/web-service-common-php/zipball/622f7c732a7f9c4c62497fc103939e042b6bdb88",
-                "reference": "622f7c732a7f9c4c62497fc103939e042b6bdb88",
+                "url": "https://api.github.com/repos/maxmind/web-service-common-php/zipball/61a9836fa3bb1743ab89752bae5005d71e78c73b",
+                "reference": "61a9836fa3bb1743ab89752bae5005d71e78c73b",
                 "shasum": ""
             },
             "require": {
@@ -268,20 +266,20 @@
             ],
             "description": "Internal MaxMind Web Service API",
             "homepage": "https://github.com/maxmind/web-service-common-php",
-            "time": "2017-07-06T17:48:21+00:00"
+            "time": "2018-02-12T22:31:54+00:00"
         },
         {
             "name": "php-amqplib/php-amqplib",
-            "version": "v2.7.0",
+            "version": "v2.7.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-amqplib/php-amqplib.git",
-                "reference": "f48748546e398d846134c594dfca9070c4c3b356"
+                "reference": "dfd3694a86f1a7394d3693485259d4074a6ec79b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-amqplib/php-amqplib/zipball/f48748546e398d846134c594dfca9070c4c3b356",
-                "reference": "f48748546e398d846134c594dfca9070c4c3b356",
+                "url": "https://api.github.com/repos/php-amqplib/php-amqplib/zipball/dfd3694a86f1a7394d3693485259d4074a6ec79b",
+                "reference": "dfd3694a86f1a7394d3693485259d4074a6ec79b",
                 "shasum": ""
             },
             "require": {
@@ -293,6 +291,7 @@
                 "videlalvaro/php-amqplib": "self.version"
             },
             "require-dev": {
+                "phpdocumentor/phpdocumentor": "^2.9",
                 "phpunit/phpunit": "^4.8",
                 "scrutinizer/ocular": "^1.1",
                 "squizlabs/php_codesniffer": "^2.5"
@@ -313,7 +312,7 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "LGPL-2.1"
+                "LGPL-2.1-or-later"
             ],
             "authors": [
                 {
@@ -338,7 +337,40 @@
                 "queue",
                 "rabbitmq"
             ],
-            "time": "2017-08-03T22:06:21+00:00"
+            "time": "2018-02-11T19:28:00+00:00"
+        },
+        {
+            "name": "sahil-gulati/reqrequest",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Sahil-Gulati/REQRequest.git",
+                "reference": "7c185f8c4ca5c862002f3165f2af6ff3c56c1bfd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Sahil-Gulati/REQRequest/zipball/7c185f8c4ca5c862002f3165f2af6ff3c56c1bfd",
+                "reference": "7c185f8c4ca5c862002f3165f2af6ff3c56c1bfd",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "REQRequest": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "Sahil Gulati",
+                    "email": "sahil.nona@gmail.com"
+                }
+            ],
+            "description": "RabbitMQ 3.3.4 HTTP Api for PHP!",
+            "time": "2017-02-18T05:27:05+00:00"
         },
         {
             "name": "seld/cli-prompt",
@@ -390,21 +422,19 @@
         },
         {
             "name": "workerman/workerman",
-            "version": "v3.5.1",
+            "version": "v3.5.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/walkor/Workerman.git",
-                "reference": "01aadefdc3e7bf65dd0956d1d876bc9d27cd9156"
+                "reference": "f6e129079e5f5398bffc218024f2dd95678fc564"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/walkor/Workerman/zipball/01aadefdc3e7bf65dd0956d1d876bc9d27cd9156",
-                "reference": "01aadefdc3e7bf65dd0956d1d876bc9d27cd9156",
+                "url": "https://api.github.com/repos/walkor/Workerman/zipball/f6e129079e5f5398bffc218024f2dd95678fc564",
+                "reference": "f6e129079e5f5398bffc218024f2dd95678fc564",
                 "shasum": ""
             },
             "require": {
-                "ext-pcntl": "*",
-                "ext-posix": "*",
                 "php": ">=5.3"
             },
             "suggest": {
@@ -434,7 +464,7 @@
                 "asynchronous",
                 "event-loop"
             ],
-            "time": "2017-08-25T08:26:28+00:00"
+            "time": "2017-12-06T04:17:52+00:00"
         }
     ],
     "packages-dev": [],
