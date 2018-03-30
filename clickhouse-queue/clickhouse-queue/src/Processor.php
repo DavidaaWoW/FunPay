@@ -294,6 +294,7 @@ class Processor {
 							'brand'                => $body['values']['brand'],
 							'recommended_by'       => $body['values']['recommended_by'] ?? null,
 							'referer'              => null,
+							'position'             => $body['values']['position'] ?? null,
 						],
 						'opts' => [],
 					])), '', 'clickhouse');
