@@ -313,6 +313,8 @@ class Processor {
 		//Дата выборки
 		$date = date('Y-m-d', strtotime('-2 HOUR'));
 		$dateTime = date('Y-m-d H:i:s', strtotime('-2 HOUR'));
+		$dateHour = date('Y-m-d', strtotime('-1 HOUR'));
+		$dateTimeHour = date('Y-m-d H:i:s', strtotime('-1 HOUR'));
 
 		//Если было событие просмотра товара и указан, что пришел из рекомендера и у товара есть бренд
 		//Пробуем найти событие recone_view которое добавляется при генерации рекомендации
@@ -343,8 +345,23 @@ class Processor {
 						//Если событие просмотра товара, то разрешаем добавлять клик
 						$access = $body['values']['event'] == 'view';
 
-						//Если событие корзины или покупки
-						if( in_array($body['values']['event'], ['cart', 'purchase']) ) {
+						//Проверяем, чтобы не было повторного клика в течении часа только для текущей кампании
+						if( $body['values']['event'] == 'view' ) {
+							$actions = $this->cli->get("SELECT 1 FROM recone_actions WHERE
+																								session_id = {$body['values']['session_id']} 
+																								AND shop_id = {$body['values']['shop_id']}
+																								AND event = 'click'
+																								AND object_type = 'VendorCampaign'
+																								AND object_id = '{$campaign->object_id}'
+																								AND date >= '{$dateHour}'
+																								AND created_at >= '{$dateTimeHour}'
+																								ORDER BY created_at DESC");
+							//Если вернулся пустой результат, добавляем событие клика
+							$access = empty($actions);
+						}
+
+						//Если событие корзины или покупки и клика не было
+						if( in_array($body['values']['event'], ['cart', 'purchase']) && $access ) {
 
 							try {
 								$request = new Rabbitmq($this->config['rabbit']['user'], $this->config['rabbit']['password'], $this->config['rabbit']['host']);
