@@ -49,6 +49,7 @@ class Processor {
 	private $geo_detector;
 
 	private $batch_size;
+	private $batch = [];
 	private $queue = [];
 
 	/**
@@ -63,6 +64,16 @@ class Processor {
 		$this->config = $config;
 		$this->logger = $logger;
 
+		//Проверяем, чтобы максимальное число в пачке для таблиц было меньше или равно общей
+		$this->batch_size = $config['rabbit']['batch_size'] ?? 1;
+		$this->batch = $config['rabbit']['batch'] ?? [];
+		if( !empty($this->batch) && $this->batch_size < max($this->batch) ) {
+			$logger->error('Variable batch_size is less a max value batch');
+			while(1) {
+				sleep(100);
+			}
+		}
+
 		//Инициализируем определение местоположения
 		$this->geo_detector = new GeoDetector($config['geo']);
 
@@ -74,8 +85,7 @@ class Processor {
 		$this->channel->queue_declare('clickhouse', false, true, false, false);
 
 		//Устанавливаем что мы работаем в несколько потоков
-		$this->batch_size = $config['rabbit']['batch_size'] ?? 1;
-		$this->channel->basic_qos(null, $this->batch_size, true);
+		$this->channel->basic_qos(null, $this->batch_size + array_sum($this->batch), true);
 
 		//Подписываем колбек функцию
 		$this->channel->basic_consume('clickhouse', getmypid(), false, false, false, false, function($message) {
@@ -112,7 +122,6 @@ class Processor {
 			}
 
 			//Добавляем в очередь
-//			$this->cli->insert($body['table'], $body['values']);
 			$this->queue[$body['table']]['time'] = time();
 			$this->queue[$body['table']]['queue'][$tag] = $body;
 
@@ -121,7 +130,7 @@ class Processor {
 
 		} catch (\Exception $e) {
 			$this->logger->error($e->getMessage() . $e->getTraceAsString());
-			sleep(1);
+			sleep(2);
 			$this->channel->basic_reject($tag, true);
 			unset($this->queue[$body['table']]['queue'][$tag]);
 		}
@@ -133,27 +142,38 @@ class Processor {
 	protected function queueUpdated() {
 
 		//Проходим по внутренней очереди
-		$count = 0;
 		foreach( $this->queue as $table => $data ) {
 
-			//Если время последней вставки больше 10 секунд, сразу отправляем пачку
-			if( $data['time'] < strtotime('-10 seconds') ) {
+			//Если наступило время обработки таблицы
+			if( $this->availableForProcessing($table, $data['time']) ) {
 				$this->queueProcessing($table);
-			} else {
-				$count += count($this->queue[$table]['queue']);
 			}
 		}
+	}
 
-		//Если очередь полная
-		if( $count >= $this->batch_size ) {
-			foreach( $this->queue as $table => $data ) {
+	/**
+	 * Проверяет, готова ли очередь для вставки в таблицу
+	 * @param $table
+	 * @param $last_updated
+	 * @return bool
+	 */
+	protected function availableForProcessing($table, $last_updated) {
 
-				//Выполняем для таблиц, которые заполнены хотябы на половину размера пачки
-				if( count($this->queue[$table]['queue']) > $this->batch_size / count($this->queue[$table]) * 0.25 ) {
-					$this->queueProcessing($table);
-				}
-			}
+		//Если время последней вставки больше 10 секунд, сразу отправляем пачку
+		if( $last_updated < strtotime('-15 seconds') ) {
+			return true;
 		}
+
+		//Получаем количество данных в очереди для вставки
+		$count = count($this->queue[$table]['queue']);
+
+		//Если текущая таблица присутствует в списке
+		if( isset($this->batch[$table]) ) {
+			return $count >= $this->batch[$table];
+		}
+
+		//Общие условия для вставки
+		return $count > $this->batch_size / count($this->queue[$table]) * 0.25;
 	}
 
 	/**
@@ -171,7 +191,7 @@ class Processor {
 //				case 'actions':
 				case 'visits':
 //				case 'profile_events':
-				case 'recone_actions':
+//				case 'recone_actions':
 					$this->cli2->bulkInsert($table, $bulk);
 					break;
 
