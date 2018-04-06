@@ -389,7 +389,7 @@ class Processor {
 								$this->logger->info('Queue: ' . $result['messages']);
 
 								//Проверяем, чтобы в очереди было мало записей, чтобы не дублировать клики, когда у нас проблемы.
-								if( $result['messages'] < 1000 ) {
+								if( $result['messages'] < 5000 ) {
 									$actions = $this->cli->get("SELECT 1 FROM recone_actions WHERE session_id = {$body['values']['session_id']} 
 																								AND shop_id = {$body['values']['shop_id']}
 																								AND event = 'click'
