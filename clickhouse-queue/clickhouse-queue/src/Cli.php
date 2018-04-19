@@ -76,15 +76,12 @@ class Cli {
 		$insert_values = [];
 		foreach( $data as $body ) {
 
-			if( empty($body['values']['created_at']) ) {
-				$body['values']['created_at'] = date('Y-m-d H:i:s');
-			}
-			if( empty($body['values']['date']) ) {
-				$body['values']['date'] = date('Y-m-d');
-			}
-
 			//Форматируем вставляемые данные
 			$values = $this->format($table, $body['values']);
+
+			//Добавляем дефолтные данные
+			$values = $this->setDefaultValues($table, $values);
+
 			if( $columns === null ) {
 				$columns = array_keys($values);
 			}
@@ -184,6 +181,25 @@ class Cli {
 	}
 
 	/**
+	 * @param       $table
+	 * @param array $values
+	 * @return array
+	 */
+	private function setDefaultValues($table, array $values) {
+		foreach($this->schema[$table] as $key => $value) {
+			//Если ключа нет, добавляем в массив
+			if( !isset($values[$key]) ) {
+				$values[$key] = $value['default'] ?: ($value['null'] ? 'NULL' : '');
+			}
+		}
+
+		//Сортируем ключи
+		ksort($values);
+
+		return $values;
+	}
+
+	/**
 	 * Получает схему таблицы
 	 * @param $table
 	 * @return array
@@ -201,6 +217,7 @@ class Cli {
 				$this->schema[$table][$column['name']] = [
 					'type' => $this->columnConvertType($column['type']),
 					'null' => $this->columnIsNull($column['type']),
+					'default' => $column['default_expression'],
 				];
 			}
 		}
