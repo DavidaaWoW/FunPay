@@ -116,13 +116,12 @@ class Processor {
 			//Проверяем очередь
 			if( !isset($this->queue[$body['table']]) ) {
 				$this->queue[$body['table']] = [
-					'time'  => null,
+					'time'  => time(),
 					'queue' => [],
 				];
 			}
 
 			//Добавляем в очередь
-			$this->queue[$body['table']]['time'] = time();
 			$this->queue[$body['table']]['queue'][$tag] = $body;
 
 			//Вызываем триггер на обработку массива очереди
@@ -154,17 +153,17 @@ class Processor {
 	/**
 	 * Проверяет, готова ли очередь для вставки в таблицу
 	 * @param $table
-	 * @param $last_updated
+	 * @param $created_at
 	 * @return bool
 	 */
-	protected function availableForProcessing($table, $last_updated) {
+	protected function availableForProcessing($table, $created_at) {
 
 		//Если время последней вставки больше 10 секунд, сразу отправляем пачку
 		if( in_array($table, ['visits']) ) {
-			if( $last_updated < strtotime('-15 seconds') ) {
+			if( $created_at < strtotime('-15 seconds') ) {
 				return true;
 			}
-		} elseif( $last_updated < strtotime('-2 seconds') ) {
+		} elseif( $created_at < strtotime('-2 seconds') ) {
 			return true;
 		}
 
