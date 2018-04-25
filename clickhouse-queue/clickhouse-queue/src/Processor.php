@@ -160,7 +160,11 @@ class Processor {
 	protected function availableForProcessing($table, $last_updated) {
 
 		//Если время последней вставки больше 10 секунд, сразу отправляем пачку
-		if( $last_updated < strtotime('-2 seconds') ) {
+		if( in_array($table, ['visits']) ) {
+			if( $last_updated < strtotime('-15 seconds') ) {
+				return true;
+			}
+		} elseif( $last_updated < strtotime('-2 seconds') ) {
 			return true;
 		}
 
