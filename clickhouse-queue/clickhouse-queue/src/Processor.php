@@ -159,7 +159,7 @@ class Processor {
 	protected function availableForProcessing($table, $created_at) {
 
 		//Если время последней вставки больше 10 секунд, сразу отправляем пачку
-		if( in_array($table, ['visits']) ) {
+		if( in_array($table, ['visits', 'push_attributes']) ) {
 			if( $created_at < strtotime('-15 seconds') ) {
 				return true;
 			}
