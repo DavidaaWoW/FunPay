@@ -50,6 +50,10 @@ if( $cli->arguments->get('help') ) {
 	//Читаем конфиги
 	$config = parse_ini_file(APP_ROOT . '/config/secrets.ini', true);
 
+	//Указываем pid основного процесса
+	Worker::$pidFile = APP_ROOT . '/log/daemon.pid';
+	Worker::$logFile = APP_ROOT . '/log/daemon.log';
+
 	$worker = new Worker();
 	$worker->onWorkerStart = function() use ($cli, $config) {
 		$this->server = new Processor(new Logger($cli, $cli->arguments->get('log'), $cli->arguments->get('log_level')), $config);
