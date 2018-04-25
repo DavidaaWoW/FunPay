@@ -43,8 +43,9 @@ class Cli {
 
 	/**
 	 * @param string $table
-	 * @param array $values
+	 * @param array  $values
 	 * @throws ProcessorException
+	 * @throws \Exception
 	 */
 	public function insert($table, array $values) {
 
@@ -65,9 +66,10 @@ class Cli {
 
 	/**
 	 * Вставляет данные пачкой
-	 * @param $table
+	 * @param       $table
 	 * @param array $data
 	 * @throws ProcessorException
+	 * @throws \Exception
 	 */
 	public function bulkInsert($table, array $data) {
 
@@ -164,9 +166,10 @@ class Cli {
 	/**
 	 * Преобразует все данные в формат таблицы
 	 * @param string $table
-	 * @param array $values
+	 * @param array  $values
 	 * @return array
 	 * @throws ProcessorException
+	 * @throws \Exception
 	 */
 	private function format($table, array $values) {
 
@@ -261,6 +264,14 @@ class Cli {
 		return (bool) preg_match('/^Nullable\((.*?)\)$/', $type, $match);
 	}
 
+	/**
+	 * @param $table
+	 * @param $column
+	 * @param $value
+	 * @return string
+	 * @throws ProcessorException
+	 * @throws \Exception
+	 */
 	protected function convertToSQLType($table, $column, $value) {
 		$schema = $this->schema($table)[$column];
 
