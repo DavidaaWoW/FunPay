@@ -8,6 +8,8 @@ namespace REES46\ClickHouse;
  */
 class Cli {
 
+	const MAX_ATTEMPT = 10;
+
 	/**
 	 * @var Logger
 	 */
@@ -115,9 +117,28 @@ class Cli {
 	 * @throws ProcessorException
 	 */
 	public function get($sql) {
-		$result = json_decode($this->sql(preg_replace('/(\n|\t+)/', ' ', $sql) . ' FORMAT JSON'));
-		if( isset($result->data) ) {
-			return $result->data;
+		$attempt = 0;
+
+		//Пытаемся несколько раз получить данные
+		while( $attempt < self::MAX_ATTEMPT ) {
+			try {
+
+				//Получаем данные
+				$result = json_decode($this->sql(preg_replace('/(\n|\t+)/', ' ', $sql) . ' FORMAT JSON'));
+				if( isset($result->data) ) {
+					return $result->data;
+				}
+				return null;
+
+			} catch (ProcessorException $e) {
+				$attempt++;
+				//Если все попытки кончились, кидаем ошибку
+				if( $attempt >= self::MAX_ATTEMPT ) {
+					throw $e;
+				} else {
+					sleep($attempt);
+				}
+			}
 		}
 		return null;
 	}
