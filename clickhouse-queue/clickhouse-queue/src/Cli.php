@@ -178,7 +178,7 @@ class Cli {
 		$code = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
 
 		if( $code >= 400 || $code < 200 ) {
-			throw new ProcessorException('[CODE: ' . $code . ', ' . $this->host . '] SQL: ' . substr($sql, 0, 700) . PHP_EOL . trim($response));
+			throw new ProcessorException('[CODE: ' . $code . ', ' . $this->host . '] SQL: ' . $sql . PHP_EOL . trim($response));
 		}
 
 		return $response;
