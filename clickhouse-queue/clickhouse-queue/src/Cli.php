@@ -153,7 +153,7 @@ class Cli {
 			return $data;
 		} else {
 			if( is_string($data) ) {
-				return '\'' . substr(addslashes(str_replace(["'", '\\'], '', strip_tags($data))), 0, 250) . '\'';
+				return '\'' . addslashes(substr(str_replace(["'", '\\'], '', strip_tags($data)), 0, 240)) . '\'';
 			} else {
 				if( $data ) {
 					throw new \Exception('Invalid data type.');
