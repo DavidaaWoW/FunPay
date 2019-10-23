@@ -31,16 +31,14 @@ namespace :deploy do
   task :start do
     on roles(:app), in: :sequence, wait: 5 do
       within release_path do
-        #execute "cd #{current_path}; ./run start -d"
-        execute "sudo /usr/bin/supervisorctl start clickhouse_queue"
+        execute "cd #{current_path}; ./run start -d"
       end
     end
   end
 
   task :stop do
     on roles(:web), in: :sequence, wait: 5 do
-      #execute "cd #{release_path}; ./run stop"
-      execute "sudo /usr/bin/supervisorctl stop clickhouse_queue"
+      execute "cd #{release_path}; ./run stop"
     end
   end
 
@@ -48,17 +46,14 @@ namespace :deploy do
   # поэтому нужно сначала запустить deploy:start
   task :restart do
     on roles(:app), in: :sequence, wait: 5 do
-      #execute "cd #{release_path}; ./run restart -d"
-      execute "sudo /usr/bin/supervisorctl restart clickhouse_queue"
-  
+      execute "cd #{release_path}; ./run restart -d"
     end
   end
 
   task :status do
     on roles(:app), in: :sequence, wait: 5 do
       within release_path do
-        #execute "cd #{current_path}; ./run status"
-        execute "sudo /usr/bin/supervisorctl status clickhouse_queue"
+        execute "cd #{current_path}; ./run status"
       end
     end
   end
