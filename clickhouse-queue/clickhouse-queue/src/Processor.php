@@ -287,38 +287,33 @@ class Processor {
  																				AND event = 'click'
  																				AND item_id = '{$body['values']['item_uniqid']}'
  																				AND object_type = 'VendorCampaign'
- 																				AND brand = '" . addslashes($body['values']['brand']) . "'
  																				AND date >= '{$date}'");
 
 		//Если нашлись компании вендоров
 		if( !empty($campaigns) ) {
 			foreach($campaigns as $campaign) {
 
-				//Если бренды совпадают
-				if( mb_strtolower($campaign->brand) == mb_strtolower($body['values']['brand']) ) {
-
-					//Добавляем событие в очередь
-					$this->channel->basic_publish(new AMQPMessage(json_encode([
-						'table' => 'recone_actions',
-						'values' => [
-							'session_id'           => $body['values']['session_id'],
-							'current_session_code' => $body['opts']['current_session_code'] ?? '',
-							'shop_id'              => $body['values']['shop_id'],
-							'event'                => 'purchase',
-							'item_id'              => $body['values']['item_uniqid'],
-							'object_type'          => 'VendorCampaign',
-							'object_id'            => $campaign->object_id,
-							'object_price'         => 0,
-							'price'                => $body['values']['price'],
-							'amount'               => $body['values']['amount'] ?? 1,
-							'brand'                => $body['values']['brand'],
-							'recommended_by'       => $body['values']['recommended_by'] ?? null,
-							'referer'              => null,
-							'position'             => $body['values']['position'] ?? null,
-						],
-						'opts' => [],
-					])), '', 'clickhouse');
-				}
+				//Добавляем событие в очередь
+				$this->channel->basic_publish(new AMQPMessage(json_encode([
+					'table' => 'recone_actions',
+					'values' => [
+						'session_id'           => $body['values']['session_id'],
+						'current_session_code' => $body['opts']['current_session_code'] ?? '',
+						'shop_id'              => $body['values']['shop_id'],
+						'event'                => 'purchase',
+						'item_id'              => $body['values']['item_uniqid'],
+						'object_type'          => 'VendorCampaign',
+						'object_id'            => $campaign->object_id,
+						'object_price'         => 0,
+						'price'                => $body['values']['price'],
+						'amount'               => $body['values']['amount'] ?? 1,
+						'brand'                => $body['values']['brand'],
+						'recommended_by'       => $body['values']['recommended_by'] ?? null,
+						'referer'              => null,
+						'position'             => $body['values']['position'] ?? null,
+					],
+					'opts' => [],
+				])), '', 'clickhouse');
 			}
 		}
 	}
@@ -350,7 +345,6 @@ class Processor {
 																					AND item_id = '{$body['values']['object_id']}'
 																					AND object_type = 'VendorCampaign'
 																					AND recommended_by = '{$body['values']['recommended_by']}'
-																					AND brand = '" . addslashes($body['values']['brand']) . "'
 																					AND date >= '{$date}'
 																					AND created_at >= '{$dateTime}'
 																					ORDER BY created_at DESC");
@@ -359,83 +353,78 @@ class Processor {
 			if( !empty($campaigns) ) {
 				foreach($campaigns as $campaign) {
 
-					//Если бренды совпадают
-					if( mb_strtolower($campaign->brand) == mb_strtolower($body['values']['brand']) ) {
+					//Если событие просмотра товара, то разрешаем добавлять клик
+					$access = $body['values']['event'] == 'view';
 
-						//Если событие просмотра товара, то разрешаем добавлять клик
-						$access = $body['values']['event'] == 'view';
+					//Проверяем, чтобы не было повторного клика в течении часа только для текущей кампании
+					if( $body['values']['event'] == 'view' ) {
+						$actions = $this->cli->get("SELECT 1 FROM recone_actions WHERE
+																							session_id = {$body['values']['session_id']} 
+																							AND shop_id = {$body['values']['shop_id']}
+																							AND event = 'click'
+																							AND object_type = 'VendorCampaign'
+																							AND object_id = '{$campaign->object_id}'
+																							AND date >= '{$dateHour}'
+																							AND created_at >= '{$dateTimeHour}'
+																							ORDER BY created_at DESC");
+						//Если вернулся пустой результат, добавляем событие клика
+						$access = empty($actions);
+					}
 
-						//Проверяем, чтобы не было повторного клика в течении часа только для текущей кампании
-						if( $body['values']['event'] == 'view' ) {
-							$actions = $this->cli->get("SELECT 1 FROM recone_actions WHERE
-																								session_id = {$body['values']['session_id']} 
-																								AND shop_id = {$body['values']['shop_id']}
-																								AND event = 'click'
-																								AND object_type = 'VendorCampaign'
-																								AND object_id = '{$campaign->object_id}'
-																								AND date >= '{$dateHour}'
-																								AND created_at >= '{$dateTimeHour}'
-																								ORDER BY created_at DESC");
-							//Если вернулся пустой результат, добавляем событие клика
-							$access = empty($actions);
-						}
+					//Если событие корзины или покупки и клика не было
+					if( in_array($body['values']['event'], ['cart', 'purchase']) && $access ) {
 
-						//Если событие корзины или покупки и клика не было
-						if( in_array($body['values']['event'], ['cart', 'purchase']) && $access ) {
+						try {
+							$request = new Rabbitmq($this->config['rabbit']['user'], $this->config['rabbit']['password'], $this->config['rabbit']['host']);
+							$result = $request->getQueueInfo('/', 'clickhouse');
+							$this->logger->info('Queue: ' . $result['messages']);
 
-							try {
-								$request = new Rabbitmq($this->config['rabbit']['user'], $this->config['rabbit']['password'], $this->config['rabbit']['host']);
-								$result = $request->getQueueInfo('/', 'clickhouse');
-								$this->logger->info('Queue: ' . $result['messages']);
+							//Проверяем, чтобы в очереди было мало записей, чтобы не дублировать клики, когда у нас проблемы.
+							if( $result['messages'] < 20000 ) {
+								$actions = $this->cli->get("SELECT 1 FROM recone_actions WHERE session_id = {$body['values']['session_id']} 
+																							AND shop_id = {$body['values']['shop_id']}
+																							AND event = 'click'
+																							AND item_id = '{$body['values']['object_id']}'
+																							AND object_type = 'VendorCampaign'
+																							AND object_id = '{$campaign->object_id}'
+																							AND recommended_by = '{$body['values']['recommended_by']}'
+																							AND date >= '{$date}'
+																							AND created_at >= '{$dateTime}'
+																							ORDER BY created_at DESC");
 
-								//Проверяем, чтобы в очереди было мало записей, чтобы не дублировать клики, когда у нас проблемы.
-								if( $result['messages'] < 20000 ) {
-									$actions = $this->cli->get("SELECT 1 FROM recone_actions WHERE session_id = {$body['values']['session_id']} 
-																								AND shop_id = {$body['values']['shop_id']}
-																								AND event = 'click'
-																								AND item_id = '{$body['values']['object_id']}'
-																								AND object_type = 'VendorCampaign'
-																								AND object_id = '{$campaign->object_id}'
-																								AND recommended_by = '{$body['values']['recommended_by']}'
-																								AND brand = '" . addslashes($body['values']['brand']) . "'
-																								AND date >= '{$date}'
-																								AND created_at >= '{$dateTime}'
-																								ORDER BY created_at DESC");
-
-									//Если вернулся пустой результат, добавляем событие клика
-									$access = empty($actions);
-								} else {
-									$access = false;
-								}
-							} catch (\Exception $e) {
-								$this->logger->error($e->getMessage() . ' ' . $e->getTraceAsString());
+								//Если вернулся пустой результат, добавляем событие клика
+								$access = empty($actions);
+							} else {
 								$access = false;
 							}
+						} catch (\Exception $e) {
+							$this->logger->error($e->getMessage() . ' ' . $e->getTraceAsString());
+							$access = false;
 						}
+					}
 
-						//Добавляем событие в очередь
-						if( $access ) {
-							$this->channel->basic_publish(new AMQPMessage(json_encode([
-								'table'  => 'recone_actions',
-								'values' => [
-									'session_id'           => $body['values']['session_id'],
-									'current_session_code' => $body['values']['current_session_code'] ?? '',
-									'shop_id'              => $body['values']['shop_id'],
-									'event'                => 'click',
-									'item_id'              => $body['values']['object_id'],
-									'object_type'          => 'VendorCampaign',
-									'object_id'            => $campaign->object_id ?? -1,
-									'object_price'         => $campaign->object_price ?? -1,
-									'price'                => $body['values']['price'],
-									'amount'               => 1,
-									'brand'                => $body['values']['brand'],
-									'recommended_by'       => $body['values']['recommended_by'],
-									'referer'              => null,
-									'position'             => $body['values']['position'] ?? null
-								],
-								'opts'   => [],
-							])), '', 'clickhouse');
-						}
+					//Добавляем событие в очередь
+					if( $access ) {
+						$this->channel->basic_publish(new AMQPMessage(json_encode([
+							'table'  => 'recone_actions',
+							'values' => [
+								'session_id'           => $body['values']['session_id'],
+								'current_session_code' => $body['values']['current_session_code'] ?? '',
+								'shop_id'              => $body['values']['shop_id'],
+								'event'                => 'click',
+								'item_id'              => $body['values']['object_id'],
+								'object_type'          => 'VendorCampaign',
+								'object_id'            => $campaign->object_id ?? -1,
+								'object_price'         => $campaign->object_price ?? -1,
+								'price'                => $body['values']['price'],
+								'amount'               => 1,
+								'brand'                => $body['values']['brand'],
+								'recommended_by'       => $body['values']['recommended_by'],
+								'referer'              => null,
+								'position'             => $body['values']['position'] ?? null
+							],
+							'opts'   => [],
+						])), '', 'clickhouse');
 					}
 				}
 			}
