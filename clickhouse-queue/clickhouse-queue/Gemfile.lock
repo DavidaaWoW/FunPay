@@ -35,7 +35,7 @@ DEPENDENCIES
   rvm-capistrano
 
 RUBY VERSION
-   ruby 2.3.1p112
+   ruby 2.5.3p105
 
 BUNDLED WITH
-   1.15.4
+   1.17.3

@@ -23,7 +23,7 @@ set :ssh_options, {
 }
 
 set :rvm_type, :user
-set :rvm_ruby_version, '2.3.1'
+set :rvm_ruby_version, '2.5.3'
 
 namespace :deploy do
   task :finalize_update do ; end
