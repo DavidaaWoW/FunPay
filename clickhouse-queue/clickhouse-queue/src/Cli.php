@@ -297,7 +297,7 @@ class Cli {
 		$schema = $this->schema($table)[$column];
 
 		//Если колонка может быть NULL
-		if( $schema['null'] && !$value ) {
+		if( $schema['null'] && !$value && $value !== '' ) {
 			return 'NULL';
 		}
 
