@@ -294,6 +294,12 @@ class Cli {
 	 * @throws \Exception
 	 */
 	protected function convertToSQLType($table, $column, $value) {
+
+		//Если информации о колонке нет, очищаем данные таблицы
+		if( !isset($this->schema($table)[$column]) ) {
+			$this->schema[$table] = null;
+		}
+
 		$schema = $this->schema($table)[$column];
 
 		//Если колонка может быть NULL
