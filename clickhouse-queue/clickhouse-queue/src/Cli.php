@@ -148,7 +148,7 @@ class Cli {
 	 * @return string
 	 * @throws \Exception
 	 */
-	protected function quote($data) {
+	public function quote($data) {
 		if( is_float($data) || is_int($data) ) {
 			return $data;
 		} else {

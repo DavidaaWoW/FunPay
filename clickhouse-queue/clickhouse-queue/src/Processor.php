@@ -267,7 +267,7 @@ class Processor {
 		$date = date('Y-m-d', strtotime('-2 DAYS'));
 
 		//Получаем список компаний
-		$campaigns = $this->cli->get("SELECT DISTINCT object_id, brand FROM recone_actions WHERE did = {$body['values']['did']}
+		$campaigns = $this->cli->get("SELECT DISTINCT object_id, brand FROM recone_actions WHERE did = {$this->cli->quote($body['values']['did'])}
  																				AND shop_id = {$body['values']['shop_id']}
  																				AND event = 'click'
  																				AND item_id = '{$body['values']['item_uniqid']}'
@@ -325,7 +325,7 @@ class Processor {
 		if( in_array($body['values']['event'], ['view', 'cart', 'purchase']) && $body['values']['object_type'] == 'Item' && $body['values']['recommended_by'] && $body['values']['brand'] ) {
 
 			//Получаем последнюю. Если будут проблемы с простановкой флага recommended_by при просмотре товара, просто убрать фильтрацию и брать recommended_by из события.
-			$campaigns = $this->cli->get("SELECT DISTINCT object_id, object_price, brand FROM recone_actions WHERE did = {$body['values']['did']} 
+			$campaigns = $this->cli->get("SELECT DISTINCT object_id, object_price, brand FROM recone_actions WHERE did = {$this->cli->quote($body['values']['did'])} 
 																					AND shop_id = {$body['values']['shop_id']}
 																					AND event = 'view'
 																					AND item_id = '{$body['values']['object_id']}'
@@ -345,7 +345,7 @@ class Processor {
 					//Проверяем, чтобы не было повторного клика в течении часа только для текущей кампании
 					if( $body['values']['event'] == 'view' ) {
 						$actions = $this->cli->get("SELECT 1 FROM recone_actions WHERE
-																							did = {$body['values']['did']} 
+																							did = {$this->cli->quote($body['values']['did'])} 
 																							AND shop_id = {$body['values']['shop_id']}
 																							AND event = 'click'
 																							AND object_type = 'VendorCampaign'
@@ -367,7 +367,7 @@ class Processor {
 
 							//Проверяем, чтобы в очереди было мало записей, чтобы не дублировать клики, когда у нас проблемы.
 							if( $result['messages'] < 20000 ) {
-								$actions = $this->cli->get("SELECT 1 FROM recone_actions WHERE did = {$body['values']['did']} 
+								$actions = $this->cli->get("SELECT 1 FROM recone_actions WHERE did = {$this->cli->quote($body['values']['did'])} 
 																							AND shop_id = {$body['values']['shop_id']}
 																							AND event = 'click'
 																							AND item_id = '{$body['values']['object_id']}'
