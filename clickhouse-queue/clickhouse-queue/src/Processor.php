@@ -34,11 +34,6 @@ class Processor {
 	private $cli;
 
 	/**
-	 * @var Cli
-	 */
-	private $cli2;
-
-	/**
 	 * @var Logger
 	 */
 	private $logger;
@@ -94,7 +89,6 @@ class Processor {
 
 		//Подключаемся к кликхаусу
 		$this->cli = new Cli($this->config['clickhouse'], $this->logger);
-		$this->cli2 = new Cli($this->config['clickhouse2'], $this->logger);
 
 		//Ожидаем очередь
 		while(count($this->channel->callbacks)) {
@@ -159,8 +153,8 @@ class Processor {
 	protected function availableForProcessing($table, $created_at) {
 
 		//Если время последней вставки больше 10 секунд, сразу отправляем пачку
-		if( in_array($table, ['visits', 'push_attributes']) ) {
-			if( $created_at < strtotime('-15 seconds') ) {
+		if( in_array($table, ['device_events', 'push_attributes']) ) {
+			if( $created_at < strtotime('-30 seconds') ) {
 				return true;
 			}
 		} elseif( $created_at < strtotime('-10 seconds') ) {
@@ -189,15 +183,7 @@ class Processor {
 		unset($this->queue[$table]);
 
 		try {
-			//Отправляем по разным серверам
-			switch($table) {
-				case 'recommender_block_requests':
-					$this->cli2->bulkInsert($table, $bulk);
-					break;
-
-				default:
-					$this->cli->bulkInsert($table, $bulk);
-			}
+			$this->cli->bulkInsert($table, $bulk);
 
 			//Отвечаем, что успешно
 			foreach( array_keys($bulk) as $tag ) {
@@ -255,7 +241,6 @@ class Processor {
 
 			//Таблица событий
 			case 'actions':
-			case 'actions_sharded':
 				$this->actionsProcessor($body);
 				break;
 
@@ -282,7 +267,7 @@ class Processor {
 		$date = date('Y-m-d', strtotime('-2 DAYS'));
 
 		//Получаем список компаний
-		$campaigns = $this->cli->get("SELECT DISTINCT object_id, brand FROM recone_actions WHERE session_id = {$body['values']['session_id']}
+		$campaigns = $this->cli->get("SELECT DISTINCT object_id, brand FROM recone_actions WHERE did = {$body['values']['did']}
  																				AND shop_id = {$body['values']['shop_id']}
  																				AND event = 'click'
  																				AND item_id = '{$body['values']['item_uniqid']}'
@@ -298,6 +283,7 @@ class Processor {
 					'table' => 'recone_actions',
 					'values' => [
 						'session_id'           => $body['values']['session_id'],
+						'did'                  => $body['values']['did'],
 						'current_session_code' => $body['opts']['current_session_code'] ?? '',
 						'shop_id'              => $body['values']['shop_id'],
 						'event'                => 'purchase',
@@ -339,7 +325,7 @@ class Processor {
 		if( in_array($body['values']['event'], ['view', 'cart', 'purchase']) && $body['values']['object_type'] == 'Item' && $body['values']['recommended_by'] && $body['values']['brand'] ) {
 
 			//Получаем последнюю. Если будут проблемы с простановкой флага recommended_by при просмотре товара, просто убрать фильтрацию и брать recommended_by из события.
-			$campaigns = $this->cli->get("SELECT DISTINCT object_id, object_price, brand FROM recone_actions WHERE session_id = {$body['values']['session_id']} 
+			$campaigns = $this->cli->get("SELECT DISTINCT object_id, object_price, brand FROM recone_actions WHERE did = {$body['values']['did']} 
 																					AND shop_id = {$body['values']['shop_id']}
 																					AND event = 'view'
 																					AND item_id = '{$body['values']['object_id']}'
@@ -359,7 +345,7 @@ class Processor {
 					//Проверяем, чтобы не было повторного клика в течении часа только для текущей кампании
 					if( $body['values']['event'] == 'view' ) {
 						$actions = $this->cli->get("SELECT 1 FROM recone_actions WHERE
-																							session_id = {$body['values']['session_id']} 
+																							did = {$body['values']['did']} 
 																							AND shop_id = {$body['values']['shop_id']}
 																							AND event = 'click'
 																							AND object_type = 'VendorCampaign'
@@ -381,7 +367,7 @@ class Processor {
 
 							//Проверяем, чтобы в очереди было мало записей, чтобы не дублировать клики, когда у нас проблемы.
 							if( $result['messages'] < 20000 ) {
-								$actions = $this->cli->get("SELECT 1 FROM recone_actions WHERE session_id = {$body['values']['session_id']} 
+								$actions = $this->cli->get("SELECT 1 FROM recone_actions WHERE did = {$body['values']['did']} 
 																							AND shop_id = {$body['values']['shop_id']}
 																							AND event = 'click'
 																							AND item_id = '{$body['values']['object_id']}'
@@ -409,6 +395,7 @@ class Processor {
 							'table'  => 'recone_actions',
 							'values' => [
 								'session_id'           => $body['values']['session_id'],
+								'did'                  => $body['values']['did'],
 								'current_session_code' => $body['values']['current_session_code'] ?? '',
 								'shop_id'              => $body['values']['shop_id'],
 								'event'                => 'click',
