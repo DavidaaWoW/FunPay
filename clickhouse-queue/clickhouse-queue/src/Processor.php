@@ -259,7 +259,7 @@ class Processor {
 	protected function orderItemProcessor($body) {
 
 		//Если дополнительные параметры или бренд не указаны, выходим
-		if( empty($body['opts']) || empty($body['values']['brand']) ) {
+		if( empty($body['opts']) || empty($body['values']['brand']) || empty($body['values']['did']) ) {
 			return;
 		}
 
