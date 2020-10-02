@@ -57,7 +57,7 @@ class Logger {
 	 */
 	public function info($message) {
 		if( in_array($this->level, [self::TYPE_INFO, self::TYPE_DEBUG]) ) {
-			$this->cli->info($this->write($message, self::TYPE_INFO));
+			$this->cli->out($this->write($message, self::TYPE_INFO));
 		}
 	}
 
@@ -65,7 +65,7 @@ class Logger {
 	 * @param $message
 	 */
 	public function error($message) {
-		$this->cli->error($this->write($message, self::TYPE_ERROR));
+		$this->cli->out($this->write($message, self::TYPE_ERROR));
 	}
 
 	/**
