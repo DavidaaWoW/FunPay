@@ -12,7 +12,6 @@ set :scm, :git
 
 set :deploy_to, "/home/rails/#{fetch(:application)}"
 set :deploy_via,      :remote_cache
-set :ssh_options,     { forward_agent: true }
 set :use_sudo,        false
 set :keep_releases, 5
 

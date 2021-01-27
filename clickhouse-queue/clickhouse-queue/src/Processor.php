@@ -221,13 +221,6 @@ class Processor {
 	protected function beforeTableProcessor($body) {
 		switch( $body['table'] ) {
 
-			//Временно переопределяем таблицу вставки данных
-			case 'actions':
-				if( !empty($body['values']['session_id']) ) {
-					$body['table'] = 'actions_old';
-				}
-				break;
-
 			//Дополняем данными о местоположении по ip
 			case 'visits':
 				if( !empty($body['values']['ip']) ) {
