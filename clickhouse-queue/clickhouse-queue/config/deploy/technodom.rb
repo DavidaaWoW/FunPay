@@ -1,5 +1,5 @@
-role :web, '109.166.71.13'
-role :app, '109.166.71.13'
+role :web, '194.169.87.42'
+role :app, '194.169.87.42'
 
 set :stage, :technodom
 set :default_stage, :technodom

@@ -4,12 +4,20 @@
 
 # Requirements
 
-* PHP 7.0
+* PHP 8.0
 * RabbitMQ
 * [Composer](https://getcomposer.org/)
 
 ```sh
-apt install php7.0 php7.0-cgi php7.0-dev php7.0-bcmath php7.0-mbstring php7.0-zip php7.0-curl
+apt install php8.0 php8.0-cgi php8.0-dev php8.0-bcmath php8.0-mbstring php8.0-curl php8.0-pgsql php8.0-xml php8.0-gmp php-pear
+```
+
+## Install with lib Uv
+```bash
+apt install libuv1-dev
+ln -s /etc/php/8.0/mods-available/uv.ini /etc/php/8.0/cli/conf.d/
+echo 'extension=uv.so' > /etc/php/8.0/mods-available/uv.ini
+git clone https://github.com/bwoebi/php-uv.git && cd php-uv && phpize && ./configure && make && make install && cd .. && rm -rf php-uv && php -m |grep uv
 ```
 
 ## Download Composer

@@ -1,0 +1,26 @@
+#!/usr/bin/env php
+<?php
+
+use League\CLImate\CLImate;
+use REES46\ClickHouse\Logger;
+use REES46\ClickHouse\Processor;
+use Workerman\Worker;
+
+require 'init.php';
+
+if( $cli->arguments->get('help') ) {
+	$cli->usage();
+} else {
+	//Читаем конфиги
+	$config = parse_ini_file(APP_ROOT . '/config/secrets.ini', true);
+
+	//Указываем pid основного процесса
+	Worker::$pidFile = APP_ROOT . '/log/daemon.pid';
+	Worker::$logFile = APP_ROOT . '/log/daemon.log';
+
+	$worker = new Processor($cli, $config);
+	$worker->onWorkerStart = [$worker, 'onWorkerStarted'];
+
+	// run all workers
+	Worker::runAll();
+}

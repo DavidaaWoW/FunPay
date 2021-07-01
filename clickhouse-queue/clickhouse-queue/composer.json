@@ -2,9 +2,9 @@
   "name": "rees46/clickhouse_queue",
   "description": "REES46 ClickHouse queue with RabbitMQ",
   "require": {
-    "php-amqplib/php-amqplib": "^2.7",
-    "workerman/workerman": "^3.5",
-    "league/climate": "^3.2",
+    "rees46/core": "dev-master",
+    "amphp/postgres": "dev-master",
+    "webgriffe/amp-elasticsearch": "dev-master",
     "geoip2/geoip2": "^2.6",
     "sahil-gulati/reqrequest": "^1.0"
   },
@@ -12,5 +12,15 @@
     "psr-4": {
       "REES46\\ClickHouse\\": "src/"
     }
-  }
+  },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/PNixx/amp-elasticsearch"
+    },
+    {
+      "type": "git",
+      "url": "git@bitbucket.org:mkechinov/rees46-core.git"
+    }
+  ]
 }
