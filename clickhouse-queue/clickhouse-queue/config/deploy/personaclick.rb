@@ -1,5 +1,5 @@
-role :web, '94.130.90.232'
-role :app, '94.130.90.232'
+role :web, '88.99.209.134'
+role :app, '88.99.209.134'
 
 set :stage, :personaclick
 set :default_stage, :personaclick

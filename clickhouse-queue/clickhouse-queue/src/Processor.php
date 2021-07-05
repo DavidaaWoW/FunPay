@@ -52,13 +52,13 @@ class Processor extends Worker {
 
 		//Проверяем, чтобы максимальное число в пачке для таблиц было меньше или равно общей
 		$this->batch_size = $this->config['default']['batch_size'] ?? 1000;
-		$this->batch = $config['default']['batch'] ?? [];
+		$this->batch = $this->config['default']['batch'] ?? [];
 
 		//Инициализируем определение местоположения
 		$this->geo_detector = new GeoDetector($this->config['geo']);
 
 		//Указываем лимит неподтвержденных тасков
-		yield RabbitMQ::get()->channel->qos(0, 20000);
+		yield RabbitMQ::get()->channel->qos(0, 15000);
 
 		//Подписываемся на канал
 		yield RabbitMQ::get()->channel->queueDeclare(RabbitMQ::CLICKHOUSE_QUEUE, false, true);
@@ -137,7 +137,7 @@ class Processor extends Worker {
 
 			//Проходим по локальной очереди
 			foreach( $this->queue as $table => $data ) {
-				if( isset($this->queue_time[$table]) && $this->queue_time[$table] <= strtotime('-10 seconds') ) {
+				if( $this->availableForProcessing($table) ) {
 					yield $this->queueProcessing($table);
 				}
 			}
@@ -150,6 +150,13 @@ class Processor extends Worker {
 	 * @return bool
 	 */
 	protected function availableForProcessing($table) {
+		if( empty($this->queue[$table]) ) {
+			return false;
+		}
+
+		if( isset($this->queue_time[$table]) && $this->queue_time[$table] <= strtotime('-10 seconds') ) {
+			return true;
+		}
 
 		//Получаем количество данных в очереди для вставки
 		$count = count($this->queue[$table]);
@@ -170,11 +177,11 @@ class Processor extends Worker {
 	 */
 	protected function queueProcessing($table) {
 		return \Amp\call(function() use ($table) {
+			$time = microtime(true);
 			//Копируем данные, чтобы во время обработки их не дополнили случайно
 			$bulk = (new \ArrayObject($this->queue[$table]))->getArrayCopy();
 			unset($this->queue[$table]);
 			unset($this->queue_time[$table]);
-			Logger::$logger->info('Processing update ' . $table . ': ' . count($bulk));
 
 			try {
 				yield Clickhouse::get()->bulkInsert($table, array_map(fn($v) => $v['body']['values'], $bulk));
@@ -182,6 +189,10 @@ class Processor extends Worker {
 				//Отвечаем, что успешно
 				foreach( $bulk as $data ) {
 					yield RabbitMQ::get()->channel->ack($data['message']);
+				}
+
+				if( Logger::$logger->isHandling(\Monolog\Logger::INFO) ) {
+					Logger::$logger->info("\e[1;36" . "mProcessing \e[1;35m(" . round((microtime(true) - $time) * 1000, 2) . "ms)\e[0m \e[1;34m" . 'update ' . $table . ': ' . count($bulk) . "\e[0m");
 				}
 
 				//todo отключили обработку для реквана
