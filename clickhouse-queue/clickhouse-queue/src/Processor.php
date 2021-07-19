@@ -214,10 +214,15 @@ class Processor extends Worker {
 
 			//Дополнительные алгоритмы при вставке в таблицу
 			foreach( $bulk as $data ) {
+				$time = microtime(true);
 				try {
 					yield $this->tableProcessor($data['body']);
 				} catch (\Exception $e) {
 					Logger::$logger->error($e->getMessage(), $e->getTrace());
+				} finally {
+					if( Logger::$logger->isHandling(\Monolog\Logger::INFO) ) {
+						Logger::$logger->info("\e[1;36" . "mProcessing table $table \e[1;35m(" . round((microtime(true) - $time) * 1000, 2) . "ms)\e[0m");
+					}
 				}
 			}
 		});
