@@ -66,6 +66,8 @@ class Processor extends Worker {
 		//Подписываем колбек функцию
 		yield RabbitMQ::get()->channel->consume([$this, 'received'], RabbitMQ::CLICKHOUSE_QUEUE, getmypid());
 
+		//Каждую минуту проверяем коннект
+		Loop::repeat(60000, fn() => $this->checkConnection());
 		//Запускаем обработку очередей каждые 10 секунд
 		Loop::repeat(10000, fn() => $this->queueUpdated());
 		Logger::$logger->info('Started');
@@ -113,10 +115,7 @@ class Processor extends Worker {
 		}
 	}
 
-	/**
-	 * Обрабатывает внутреннюю очередь чтобы вставить данные пачкой
-	 */
-	protected function queueUpdated() {
+	protected function checkConnection() {
 		return \Amp\call(function() {
 			//Проверяем коннект
 			try {
@@ -134,7 +133,14 @@ class Processor extends Worker {
 				sleep(10);
 				throw $e;
 			}
+		});
+	}
 
+	/**
+	 * Обрабатывает внутреннюю очередь чтобы вставить данные пачкой
+	 */
+	protected function queueUpdated() {
+		return \Amp\call(function() {
 			//Проходим по локальной очереди
 			foreach( $this->queue as $table => $data ) {
 				if( $this->availableForProcessing($table) ) {
