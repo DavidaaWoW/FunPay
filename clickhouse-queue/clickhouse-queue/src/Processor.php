@@ -28,6 +28,7 @@ class Processor extends Worker {
 	private array $batch = [];
 	private array $queue = [];
 	private array $queue_time = [];
+	private bool $started = false;
 
 	/**
 	 * API WebServer constructor.
@@ -57,8 +58,14 @@ class Processor extends Worker {
 		//Инициализируем определение местоположения
 		$this->geo_detector = new GeoDetector($this->config['geo']);
 
+		//Сначала обрабатываем очередь
+		yield $this->queueUpdated();
+		Logger::$logger->info('Queue cleared');
+		$this->started = true;
+		sleep(1);
+
 		//Указываем лимит неподтвержденных тасков
-		yield RabbitMQ::get()->channel->qos(0, 15000);
+		yield RabbitMQ::get()->channel->qos(0, 500);
 
 		//Подписываемся на канал
 		yield RabbitMQ::get()->channel->queueDeclare(RabbitMQ::CLICKHOUSE_QUEUE, false, true);
@@ -68,8 +75,8 @@ class Processor extends Worker {
 
 		//Каждую минуту проверяем коннект
 		Loop::repeat(60000, fn() => $this->checkConnection());
-		//Запускаем обработку очередей каждые 10 секунд
-		Loop::repeat(10000, fn() => $this->queueUpdated());
+		//Запускаем обработку очередей каждые 20 секунд
+		Loop::repeat(20000, fn() => $this->queueUpdated());
 		Logger::$logger->info('Started');
 	}
 
@@ -85,17 +92,22 @@ class Processor extends Worker {
 			//Делаем работу
 			$body = $this->beforeTableProcessor(json_decode($message->content, true));
 
-			//Проверяем очередь
-			if( !isset($this->queue[$body['table']]) ) {
-				$this->queue[$body['table']] = [];
+			//Форматируем вставляемые данные
+			$values = yield Clickhouse::get()->format($body['table'], $body['values']);
+
+			//Добавляем дефолтные данные
+			$values = Clickhouse::get()->setDefaultValues($body['table'], $values);
+
+			//Добавляем строку в файл вставки
+			file_put_contents($this->dumpPath($body['table']), '(' . implode(',', $values) . ')' . PHP_EOL, FILE_APPEND);
+
+			//Запоминаем время вставки
+			if( !isset($this->queue_time[$body['table']]) ) {
 				$this->queue_time[$body['table']] = time();
 			}
 
-			//Добавляем в очередь
-			$this->queue[$body['table']][$message->deliveryTag] = [
-				'body'    => $body,
-				'message' => $message,
-			];
+			//Подтверждаем прием
+			yield $channel->ack($message);
 
 			//Если набрали данных на пачку
 			if( $this->availableForProcessing($body['table']) ) {
@@ -113,6 +125,15 @@ class Processor extends Worker {
 				unset($this->queue[$body['table']][$message->deliveryTag]);
 			}
 		}
+	}
+
+	/**
+	 * Возвращает путь к файлу для вставки
+	 * @param string $table
+	 * @return string
+	 */
+	protected function dumpPath(string $table) {
+		return APP_ROOT . '/tmp/' . $table . '.sql';
 	}
 
 	protected function checkConnection() {
@@ -142,7 +163,8 @@ class Processor extends Worker {
 	protected function queueUpdated() {
 		return \Amp\call(function() {
 			//Проходим по локальной очереди
-			foreach( $this->queue as $table => $data ) {
+			foreach( glob(pathinfo($this->dumpPath('1'), PATHINFO_DIRNAME) . '/*.sql') as $filename ) {
+				$table = pathinfo($filename, PATHINFO_FILENAME);
 				if( $this->availableForProcessing($table) ) {
 					yield $this->queueProcessing($table);
 				}
@@ -156,24 +178,21 @@ class Processor extends Worker {
 	 * @return bool
 	 */
 	protected function availableForProcessing($table) {
-		if( empty($this->queue[$table]) ) {
-			return false;
-		}
-
-		if( isset($this->queue_time[$table]) && $this->queue_time[$table] <= strtotime('-10 seconds') ) {
+		if( !$this->started ) {
 			return true;
 		}
 
-		//Получаем количество данных в очереди для вставки
-		$count = count($this->queue[$table]);
-
-		//Если текущая таблица присутствует в списке
-		if( isset($this->batch[$table]) ) {
-			return $count >= $this->batch[$table];
+		if( !isset($this->queue_time[$table]) ) {
+			return false;
 		}
 
-		//Общие условия для вставки
-		return $count >= $this->batch_size;
+		//Если не было вставки и последний раз данные приходили больше 20 секунд назад
+		if( isset($this->queue_time[$table]) && $this->queue_time[$table] <= strtotime('-20 seconds') ) {
+			return true;
+		}
+
+		//Размер больше 1 Мб, вставляем
+		return filesize($this->dumpPath($table)) >= 1048576;
 	}
 
 	/**
@@ -183,48 +202,33 @@ class Processor extends Worker {
 	 */
 	protected function queueProcessing($table) {
 		return \Amp\call(function() use ($table) {
-			$time = microtime(true);
 			//Копируем данные, чтобы во время обработки их не дополнили случайно
-			$bulk = (new \ArrayObject($this->queue[$table]))->getArrayCopy();
-			unset($this->queue[$table]);
+			$path = $this->dumpPath($table) . '.' . uniqid();
+			rename($this->dumpPath($table), $path);
+
 			unset($this->queue_time[$table]);
 
 			try {
-				yield Clickhouse::get()->bulkInsert($table, array_map(fn($v) => $v['body']['values'], $bulk));
-
-				//Отвечаем, что успешно
-				foreach( $bulk as $data ) {
-					yield RabbitMQ::get()->channel->ack($data['message']);
-				}
-
-				if( Logger::$logger->isHandling(\Monolog\Logger::INFO) ) {
-					Logger::$logger->info("\e[1;36" . "mProcessing \e[1;35m(" . round((microtime(true) - $time) * 1000, 2) . "ms)\e[0m \e[1;34m" . 'update ' . $table . ': ' . count($bulk) . "\e[0m");
-				}
-
-				//todo отключили обработку для реквана
-				$bulk = [];
+				$data = file_get_contents($path);
+				yield Clickhouse::get()->bulkDataInsert($data, $table);
+				unlink($path);
 			} catch (\Exception $e) {
 				Logger::$logger->error($e->getMessage(), array_slice($e->getTrace(), 0, 2));
-				\Amp\Loop::delay(10000, function() use ($bulk) {
-					foreach( $bulk as $data ) {
-						yield RabbitMQ::get()->channel->reject($data['message'], true);
-					}
-				});
 			}
 
 			//Дополнительные алгоритмы при вставке в таблицу
-			foreach( $bulk as $data ) {
-				$time = microtime(true);
-				try {
-					yield $this->tableProcessor($data['body']);
-				} catch (\Exception $e) {
-					Logger::$logger->error($e->getMessage(), $e->getTrace());
-				} finally {
-					if( Logger::$logger->isHandling(\Monolog\Logger::INFO) ) {
-						Logger::$logger->info("\e[1;36" . "mProcessing table $table \e[1;35m(" . round((microtime(true) - $time) * 1000, 2) . "ms)\e[0m");
-					}
-				}
-			}
+			//foreach( $bulk as $data ) {
+			//	$time = microtime(true);
+			//	try {
+			//		yield $this->tableProcessor($data['body']);
+			//	} catch (\Exception $e) {
+			//		Logger::$logger->error($e->getMessage(), $e->getTrace());
+			//	} finally {
+			//		if( Logger::$logger->isHandling(\Monolog\Logger::INFO) ) {
+			//			Logger::$logger->info("\e[1;36" . "mProcessing table $table \e[1;35m(" . round((microtime(true) - $time) * 1000, 2) . "ms)\e[0m");
+			//		}
+			//	}
+			//}
 		});
 	}
 

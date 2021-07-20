@@ -2,3 +2,4 @@ vendor/
 .idea/
 config/secrets.ini
 log/
+tmp/
