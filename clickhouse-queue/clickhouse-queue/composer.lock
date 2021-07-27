@@ -2037,16 +2037,16 @@
         },
         {
             "name": "monolog/monolog",
-            "version": "2.3.1",
+            "version": "2.3.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Seldaek/monolog.git",
-                "reference": "9738e495f288eec0b187e310b7cdbbb285777dbe"
+                "reference": "71312564759a7db5b789296369c1a264efc43aad"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/9738e495f288eec0b187e310b7cdbbb285777dbe",
-                "reference": "9738e495f288eec0b187e310b7cdbbb285777dbe",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/71312564759a7db5b789296369c1a264efc43aad",
+                "reference": "71312564759a7db5b789296369c1a264efc43aad",
                 "shasum": ""
             },
             "require": {
@@ -2117,7 +2117,7 @@
             ],
             "support": {
                 "issues": "https://github.com/Seldaek/monolog/issues",
-                "source": "https://github.com/Seldaek/monolog/tree/2.3.1"
+                "source": "https://github.com/Seldaek/monolog/tree/2.3.2"
             },
             "funding": [
                 {
@@ -2129,7 +2129,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-07-14T11:56:39+00:00"
+            "time": "2021-07-23T07:42:52+00:00"
         },
         {
             "name": "phpinnacle/buffer",
@@ -2364,7 +2364,7 @@
             "source": {
                 "type": "git",
                 "url": "git@bitbucket.org:mkechinov/rees46-core.git",
-                "reference": "4651c6c8254a8185b0a992e42a306a1f2aaab4a0"
+                "reference": "5e069bd8324f93df2e10d7ed0237425d45e63f69"
             },
             "require": {
                 "amphp/cache": "^1.4",
@@ -2399,7 +2399,7 @@
                 }
             ],
             "description": "Library for all services",
-            "time": "2021-07-20T06:42:50+00:00"
+            "time": "2021-07-27T06:07:22+00:00"
         },
         {
             "name": "rollbar/rollbar",
@@ -2668,5 +2668,5 @@
     "prefer-lowest": false,
     "platform": [],
     "platform-dev": [],
-    "plugin-api-version": "2.0.0"
+    "plugin-api-version": "2.1.0"
 }

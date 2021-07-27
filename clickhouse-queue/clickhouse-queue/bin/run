@@ -1,9 +1,8 @@
 #!/usr/bin/env php
 <?php
 
-use League\CLImate\CLImate;
-use REES46\ClickHouse\Logger;
 use REES46\ClickHouse\Processor;
+use REES46\Event\Amp;
 use Workerman\Worker;
 
 require 'init.php';
@@ -18,8 +17,9 @@ if( $cli->arguments->get('help') ) {
 	Worker::$pidFile = APP_ROOT . '/log/daemon.pid';
 	Worker::$logFile = APP_ROOT . '/log/daemon.log';
 
-	$worker = new Processor($cli, $config);
-	$worker->onWorkerStart = [$worker, 'onWorkerStarted'];
+	Worker::$eventLoopClass = Amp::class;
+
+	$worker = new Processor($cli, $config, 'Queue worker', 'rees46-clickhouse-queue');
 
 	// run all workers
 	Worker::runAll();

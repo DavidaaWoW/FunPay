@@ -9,8 +9,10 @@ use PHPinnacle\Ridge\Channel;
 use PHPinnacle\Ridge\Exception\ConnectionException;
 use PHPinnacle\Ridge\Message;
 use PHPinnacle\Ridge\Queue;
+use REES46\Bulk\Worker\BulkWorker;
 use REES46\Core\Clickhouse;
 use REES46\Core\RabbitMQ;
+use REES46\Worker\AbstractWorker;
 use REES46\Worker\WorkerTrait;
 use REES46\Core\Logger;
 use Workerman\Worker;
@@ -19,25 +21,26 @@ use Workerman\Worker;
  * ClickHouse Daemon
  * @package REES46\ClickHouse
  */
-class Processor extends Worker {
-	use WorkerTrait;
+class Processor extends AbstractWorker {
 
 	private GeoDetector $geo_detector;
 
-	private int $batch_size;
-	private array $batch = [];
 	private array $queue = [];
 	private array $queue_time = [];
 	private bool $started = false;
+	private string $loop_check;
+	private string $loop_queue;
 
-	/**
-	 * API WebServer constructor.
-	 * @param CLImate $cli
-	 * @param array   $config
-	 */
-	public function __construct(CLImate $cli, array $config) {
-		parent::__construct();
-		$this->configure($cli, $config, 'Queue worker', 'rees46-clickhouse-queue');
+	public function onReload() {
+		Loop::cancel($this->loop_check);
+		Loop::cancel($this->loop_queue);
+		//Отписываемся от основного канала
+		RabbitMQ::get()->channel->cancel('clickhouse-' . getmypid());
+		Logger::$logger->warning('Reload');
+		Loop::delay(3000, function() {
+			Logger::$logger->warning('Terminate on reload');
+			exit;
+		});
 	}
 
 	/**
@@ -50,10 +53,6 @@ class Processor extends Worker {
 		//Устанавливаем время в UTC, т.к. база вся работает только с ним
 		date_default_timezone_set('UTC');
 		Logger::$logger->info('Starting');
-
-		//Проверяем, чтобы максимальное число в пачке для таблиц было меньше или равно общей
-		$this->batch_size = $this->config['default']['batch_size'] ?? 1000;
-		$this->batch = $this->config['default']['batch'] ?? [];
 
 		//Инициализируем определение местоположения
 		$this->geo_detector = new GeoDetector($this->config['geo']);
@@ -71,12 +70,12 @@ class Processor extends Worker {
 		yield RabbitMQ::get()->channel->queueDeclare(RabbitMQ::CLICKHOUSE_QUEUE, false, true);
 
 		//Подписываем колбек функцию
-		yield RabbitMQ::get()->channel->consume([$this, 'received'], RabbitMQ::CLICKHOUSE_QUEUE, getmypid());
+		yield RabbitMQ::get()->channel->consume([$this, 'received'], RabbitMQ::CLICKHOUSE_QUEUE, 'clickhouse-' . getmypid());
 
 		//Каждую минуту проверяем коннект
-		Loop::repeat(60000, fn() => $this->checkConnection());
+		$this->loop_check = Loop::repeat(60000, fn() => $this->checkConnection());
 		//Запускаем обработку очередей каждые 20 секунд
-		Loop::repeat(20000, fn() => $this->queueUpdated());
+		$this->loop_queue = Loop::repeat(20000, fn() => $this->queueUpdated());
 		Logger::$logger->info('Started');
 	}
 
