@@ -1,6 +1,6 @@
 # Clickhouse Queue
 
-Обслуживает очередь добавления данных в кликхаус. Есть своя внутренняя логика для работы с RecOne событиями.
+Обслуживает очередь добавления данных в кликхаус.
 
 # Requirements
 
@@ -38,18 +38,17 @@ wget http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.tar.gz 
 ## Install
 
 ```sh
-bundle install
 composer install
 ```
 
 ## Deploy
 
 ```sh
-cap production deploy
+./deploy.php deploy
 ```
 
 ## Run development
 
 ```sh
-./run start -v debug
+./bin/run start -v debug
 ```
