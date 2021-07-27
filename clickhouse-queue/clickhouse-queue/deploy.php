@@ -25,7 +25,7 @@ $servers = [
 		'ssh'       => $ssh_options,
 	],
 	'personaclick' => [
-		'servers'   => ['88.99.209.134'],
+		'servers'   => ['94.130.90.232'],
 		'deploy_to' => '/home/rails/queue.personaclick.com',
 		'ssh'       => $ssh_options,
 	],
@@ -51,6 +51,6 @@ if( !class_exists('Composer\Autoload\ClassLoader', false) ) {
 
 //Запускаем деплой
 $level = Logger::TYPE_WARN;
-Deploy::$reload_cmd = 'bin/run restart -d -v ' . $level;
+Deploy::$reload_cmd = 'bin/run reload';
 $deploy = new Deploy($repo_url, $branch, $servers, $argv);
 $deploy->execute($level);
