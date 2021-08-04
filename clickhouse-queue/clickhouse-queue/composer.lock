@@ -2364,7 +2364,7 @@
             "source": {
                 "type": "git",
                 "url": "git@bitbucket.org:mkechinov/rees46-core.git",
-                "reference": "d19e1d4c62e67a7f6ed52debfe9d135a837ecdb8"
+                "reference": "1c437ea5e9a52afb9ee89958ed2693d33211b205"
             },
             "require": {
                 "amphp/cache": "^1.4",
@@ -2399,7 +2399,7 @@
                 }
             ],
             "description": "Library for all services",
-            "time": "2021-07-30T09:01:53+00:00"
+            "time": "2021-08-04T11:54:10+00:00"
         },
         {
             "name": "rollbar/rollbar",
