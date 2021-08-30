@@ -25,7 +25,6 @@ class Processor extends AbstractWorker {
 
 	private GeoDetector $geo_detector;
 
-	private array $queue = [];
 	private array $queue_time = [];
 	private bool $started = false;
 	private string $loop_check;
@@ -59,6 +58,7 @@ class Processor extends AbstractWorker {
 
 		//Сначала обрабатываем очередь
 		yield $this->queueUpdated();
+		yield $this->queueUpdated(true);
 		Logger::$logger->info('Queue cleared');
 		$this->started = true;
 		sleep(1);
@@ -120,9 +120,6 @@ class Processor extends AbstractWorker {
 		} catch (\Throwable $e) {
 			Logger::$logger->error($e->getMessage() . ', message: ' . $message->content, array_slice($e->getTrace(), 0, 2));
 			\Amp\Loop::delay(1000, fn() => RabbitMQ::get()->channel->reject($message));
-			if( !empty($body) ) {
-				unset($this->queue[$body['table']][$message->deliveryTag]);
-			}
 		}
 	}
 
@@ -158,12 +155,18 @@ class Processor extends AbstractWorker {
 
 	/**
 	 * Обрабатывает внутреннюю очередь чтобы вставить данные пачкой
+	 * @param bool $force Форсированная обработка упавших файлов
+	 * @return Promise
 	 */
-	protected function queueUpdated() {
-		return \Amp\call(function() {
+	protected function queueUpdated($force = false) {
+		return \Amp\call(function() use ($force) {
 			//Проходим по локальной очереди
-			foreach( glob(pathinfo($this->dumpPath('1'), PATHINFO_DIRNAME) . '/*.sql') as $filename ) {
-				$table = pathinfo($filename, PATHINFO_FILENAME);
+			foreach( glob(pathinfo($this->dumpPath('1'), PATHINFO_DIRNAME) . '/*.sql' . ($force ? '.*' : '')) as $filename ) {
+				$table = pathinfo(preg_replace('/\.sql(\..*?)?$/', '.sql', $filename), PATHINFO_FILENAME);
+				//Для обработки сдохших файлов
+				if( $force && preg_match('/\.sql(\..*?)?$/', $filename) ) {
+					rename($filename, $this->dumpPath($table));
+				}
 				if( $this->availableForProcessing($table) ) {
 					yield $this->queueProcessing($table);
 				}
