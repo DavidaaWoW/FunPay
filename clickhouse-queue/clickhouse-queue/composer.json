@@ -3,7 +3,6 @@
   "description": "REES46 ClickHouse queue with RabbitMQ",
   "require": {
     "rees46/core": "dev-master",
-    "amphp/postgres": "dev-master",
     "webgriffe/amp-elasticsearch": "dev-master",
     "geoip2/geoip2": "^2.6",
     "sahil-gulati/reqrequest": "^1.0"
