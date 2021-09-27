@@ -215,7 +215,7 @@ class Processor extends AbstractWorker {
 				yield Clickhouse::get()->bulkDataInsert($data, $table);
 				unlink($path);
 			} catch (\Exception $e) {
-				Logger::$logger->error($e->getMessage(), array_slice($e->getTrace(), 0, 2));
+				Logger::$logger->error(get_class($e) . ', ' . $e->getMessage(), array_slice($e->getTrace(), 0, 2));
 			}
 
 			//Дополнительные алгоритмы при вставке в таблицу
