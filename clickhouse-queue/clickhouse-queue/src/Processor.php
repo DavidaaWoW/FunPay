@@ -118,7 +118,7 @@ class Processor extends AbstractWorker {
 			//Воркер перезапустит процесс и создаст все коннекты снова
 			throw $e;
 		} catch (\Throwable $e) {
-			Logger::$logger->error($e->getMessage() . ', message: ' . $message->content, array_slice($e->getTrace(), 0, 2));
+			Logger::$logger->error(get_class($e) . ', ' . $e->getMessage() . ', message: ' . $message->content, array_slice($e->getTrace(), 0, 2));
 			\Amp\Loop::delay(1000, fn() => RabbitMQ::get()->channel->reject($message));
 		}
 	}
