@@ -52,3 +52,8 @@ composer install
 ```sh
 ./bin/run start -v debug
 ```
+
+## Fix upload chain messages
+```sh
+for d in chain_messages.sql.*; do split -l 2000 "$d" "$d"; rm "$d"; done
+```

@@ -396,7 +396,7 @@ class Processor extends AbstractWorker {
 								//Если вернулся пустой результат, добавляем событие клика
 								$access = empty($actions);
 							} catch (\Exception $e) {
-								Logger::$logger->error($e->getMessage() . ' ' . $e->getTraceAsString());
+								Logger::$logger->error(get_class($e) . ', ' . $e->getMessage() . ' ' . $e->getTraceAsString());
 								$access = false;
 							}
 						}

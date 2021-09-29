@@ -835,16 +835,16 @@
         },
         {
             "name": "amphp/postgres",
-            "version": "v1.4.1",
+            "version": "v1.4.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/amphp/postgres.git",
-                "reference": "403d39cdbede2fb210a0de1af9df2136e306848d"
+                "reference": "71d192507faa0705ffc9b592180fc6474c614556"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/amphp/postgres/zipball/403d39cdbede2fb210a0de1af9df2136e306848d",
-                "reference": "403d39cdbede2fb210a0de1af9df2136e306848d",
+                "url": "https://api.github.com/repos/amphp/postgres/zipball/71d192507faa0705ffc9b592180fc6474c614556",
+                "reference": "71d192507faa0705ffc9b592180fc6474c614556",
                 "shasum": ""
             },
             "require": {
@@ -893,7 +893,7 @@
             ],
             "support": {
                 "issues": "https://github.com/amphp/postgres/issues",
-                "source": "https://github.com/amphp/postgres/tree/v1.4.1"
+                "source": "https://github.com/amphp/postgres/tree/v1.4.2"
             },
             "funding": [
                 {
@@ -901,7 +901,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-08-25T04:15:36+00:00"
+            "time": "2021-09-20T04:28:59+00:00"
         },
         {
             "name": "amphp/process",
@@ -2366,7 +2366,7 @@
             "source": {
                 "type": "git",
                 "url": "git@bitbucket.org:mkechinov/rees46-core.git",
-                "reference": "c03563bf90c682deb082c76dd99adc3e174bd5f5"
+                "reference": "ddadedeb79d5a814e3c1e753390cda22acace263"
             },
             "require": {
                 "amphp/cache": "^1.4",
@@ -2400,7 +2400,7 @@
                 }
             ],
             "description": "Library for all services",
-            "time": "2021-09-17T09:10:37+00:00"
+            "time": "2021-09-29T11:39:22+00:00"
         },
         {
             "name": "rollbar/rollbar",
