@@ -4,31 +4,31 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8c3f40236d08a3583700abe994d2661f",
+    "content-hash": "a7052f3f0f30be2f80e76c92abae5ab3",
     "packages": [
         {
             "name": "amphp/amp",
-            "version": "v2.5.2",
+            "version": "v2.6.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/amphp/amp.git",
-                "reference": "efca2b32a7580087adb8aabbff6be1dc1bb924a9"
+                "reference": "c5fc66a78ee38d7ac9195a37bacaf940eb3f65ae"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/amphp/amp/zipball/efca2b32a7580087adb8aabbff6be1dc1bb924a9",
-                "reference": "efca2b32a7580087adb8aabbff6be1dc1bb924a9",
+                "url": "https://api.github.com/repos/amphp/amp/zipball/c5fc66a78ee38d7ac9195a37bacaf940eb3f65ae",
+                "reference": "c5fc66a78ee38d7ac9195a37bacaf940eb3f65ae",
                 "shasum": ""
             },
             "require": {
-                "php": ">=7"
+                "php": ">=7.1"
             },
             "require-dev": {
                 "amphp/php-cs-fixer-config": "dev-master",
                 "amphp/phpunit-util": "^1",
                 "ext-json": "*",
                 "jetbrains/phpstorm-stubs": "^2019.3",
-                "phpunit/phpunit": "^6.0.9 | ^7",
+                "phpunit/phpunit": "^7 | ^8 | ^9",
                 "psalm/phar": "^3.11@dev",
                 "react/promise": "^2"
             },
@@ -85,7 +85,7 @@
             "support": {
                 "irc": "irc://irc.freenode.org/amphp",
                 "issues": "https://github.com/amphp/amp/issues",
-                "source": "https://github.com/amphp/amp/tree/v2.5.2"
+                "source": "https://github.com/amphp/amp/tree/v2.6.1"
             },
             "funding": [
                 {
@@ -93,7 +93,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-01-10T17:06:37+00:00"
+            "time": "2021-09-23T18:43:08+00:00"
         },
         {
             "name": "amphp/byte-stream",
@@ -841,16 +841,16 @@
         },
         {
             "name": "amphp/postgres",
-            "version": "v1.4.2",
+            "version": "v1.4.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/amphp/postgres.git",
-                "reference": "71d192507faa0705ffc9b592180fc6474c614556"
+                "reference": "f52cc35ef02ee4ad709083e0432c2288d4df7de0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/amphp/postgres/zipball/71d192507faa0705ffc9b592180fc6474c614556",
-                "reference": "71d192507faa0705ffc9b592180fc6474c614556",
+                "url": "https://api.github.com/repos/amphp/postgres/zipball/f52cc35ef02ee4ad709083e0432c2288d4df7de0",
+                "reference": "f52cc35ef02ee4ad709083e0432c2288d4df7de0",
                 "shasum": ""
             },
             "require": {
@@ -899,7 +899,7 @@
             ],
             "support": {
                 "issues": "https://github.com/amphp/postgres/issues",
-                "source": "https://github.com/amphp/postgres/tree/v1.4.2"
+                "source": "https://github.com/amphp/postgres/tree/v1.4.3"
             },
             "funding": [
                 {
@@ -907,7 +907,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-09-20T04:28:59+00:00"
+            "time": "2021-12-04T16:46:00+00:00"
         },
         {
             "name": "amphp/process",
@@ -2211,29 +2211,30 @@
         },
         {
             "name": "phpinnacle/ridge",
-            "version": "1.2.0",
+            "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "https://github.com/phpinnacle/ridge.git",
-                "reference": "b362ee698d0c1441c777d3496deff3bd614bf1c3"
+                "url": "https://github.com/PNixx/ridge.git",
+                "reference": "80f8c9fb6de55e4e37ce1d42d103a0144a18d4de"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpinnacle/ridge/zipball/b362ee698d0c1441c777d3496deff3bd614bf1c3",
-                "reference": "b362ee698d0c1441c777d3496deff3bd614bf1c3",
+                "url": "https://api.github.com/repos/PNixx/ridge/zipball/80f8c9fb6de55e4e37ce1d42d103a0144a18d4de",
+                "reference": "80f8c9fb6de55e4e37ce1d42d103a0144a18d4de",
                 "shasum": ""
             },
             "require": {
-                "amphp/amp": "v2.5.*",
+                "amphp/amp": "v2.6.*",
                 "amphp/socket": "v1.1.*",
                 "php": ">=8.0",
                 "phpinnacle/buffer": "v1.2.*"
             },
             "require-dev": {
-                "phpstan/phpstan": "v0.12.*",
+                "phpstan/phpstan": "v1.2.*",
                 "phpunit/phpunit": "v9.5.*",
-                "vimeo/psalm": "v4.3.*"
+                "vimeo/psalm": "v4.13.*"
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "branch-alias": {
@@ -2245,7 +2246,25 @@
                     "PHPinnacle\\Ridge\\": "src"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "PHPinnacle\\Ridge\\Tests\\": "tests"
+                }
+            },
+            "scripts": {
+                "psalm": [
+                    "./vendor/bin/psalm --config=psalm.xml"
+                ],
+                "phpstan": [
+                    "./vendor/bin/phpstan analyse src --level 9"
+                ],
+                "tests": [
+                    "./vendor/bin/phpunit --configuration phpunit.xml --verbose"
+                ],
+                "coverage": [
+                    "./vendor/bin/phpunit --configuration phpunit.xml --coverage-html ./coverage --verbose"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -2260,15 +2279,14 @@
             "description": "PHPinnacle async AMQP client",
             "homepage": "https://github.com/phpinnacle/ridge",
             "keywords": [
-                "AMQP",
+                "amqp",
                 "async",
                 "phpinnacle"
             ],
             "support": {
-                "issues": "https://github.com/phpinnacle/ridge/issues",
-                "source": "https://github.com/phpinnacle/ridge/tree/1.2.0"
+                "source": "https://github.com/PNixx/ridge/tree/master"
             },
-            "time": "2021-01-03T17:04:40+00:00"
+            "time": "2021-12-09T07:59:14+00:00"
         },
         {
             "name": "psr/http-message",
@@ -2379,7 +2397,7 @@
             "source": {
                 "type": "git",
                 "url": "git@bitbucket.org:mkechinov/rees46-core.git",
-                "reference": "9c7803526052d551b6bb778557412af457990629"
+                "reference": "c1d478b61a15c73ba12678216ddda96eb9a8ced5"
             },
             "require": {
                 "amphp/cache": "^1.4",
@@ -2394,7 +2412,7 @@
                 "ext-posix": "*",
                 "league/climate": "^3.7",
                 "php": ">=8.0",
-                "phpinnacle/ridge": "^1.1",
+                "phpinnacle/ridge": "dev-master",
                 "rollbar/rollbar": "^2.1",
                 "webgriffe/amp-elasticsearch": "dev-master",
                 "workerman/workerman": "^4.0"
@@ -2413,7 +2431,7 @@
                 }
             ],
             "description": "Library for all services",
-            "time": "2021-12-01T09:17:30+00:00"
+            "time": "2021-12-12T19:56:00+00:00"
         },
         {
             "name": "rollbar/rollbar",
@@ -2618,16 +2636,16 @@
         },
         {
             "name": "workerman/workerman",
-            "version": "v4.0.22",
+            "version": "v4.0.25",
             "source": {
                 "type": "git",
                 "url": "https://github.com/walkor/Workerman.git",
-                "reference": "df1a00d8f3ebd2d68527a048abb6d298fdc4941b"
+                "reference": "d6af94dc565876ee5be30ba21b778dfee9759267"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/walkor/Workerman/zipball/df1a00d8f3ebd2d68527a048abb6d298fdc4941b",
-                "reference": "df1a00d8f3ebd2d68527a048abb6d298fdc4941b",
+                "url": "https://api.github.com/repos/walkor/Workerman/zipball/d6af94dc565876ee5be30ba21b778dfee9759267",
+                "reference": "d6af94dc565876ee5be30ba21b778dfee9759267",
                 "shasum": ""
             },
             "require": {
@@ -2667,7 +2685,7 @@
                 "source": "https://github.com/walkor/workerman",
                 "wiki": "http://doc.workerman.net/"
             },
-            "time": "2021-10-29T02:59:06+00:00"
+            "time": "2021-12-10T04:06:33+00:00"
         }
     ],
     "packages-dev": [],
@@ -2675,7 +2693,8 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "rees46/core": 20,
-        "webgriffe/amp-elasticsearch": 20
+        "webgriffe/amp-elasticsearch": 20,
+        "phpinnacle/ridge": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

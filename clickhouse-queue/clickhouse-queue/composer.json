@@ -5,6 +5,7 @@
     "rees46/core": "dev-master",
     "webgriffe/amp-elasticsearch": "dev-master",
     "geoip2/geoip2": "^2.6",
+    "phpinnacle/ridge": "dev-master",
     "sahil-gulati/reqrequest": "^1.0"
   },
   "autoload": {
@@ -20,6 +21,10 @@
     {
       "type": "git",
       "url": "git@bitbucket.org:mkechinov/rees46-core.git"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/PNixx/ridge"
     }
   ]
 }
