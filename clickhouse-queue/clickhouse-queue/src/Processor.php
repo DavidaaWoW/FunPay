@@ -48,6 +48,9 @@ class Processor extends AbstractWorker {
 	public function onStart() {
 		//Подключаемся
 		yield RabbitMQ::get()->connect();
+		Clickhouse::$timeout = 30000;
+		Clickhouse::$inactive_timeout = 30000;
+		Clickhouse::$transfer_timeout = 30000;
 
 		//Устанавливаем время в UTC, т.к. база вся работает только с ним
 		date_default_timezone_set('UTC');
