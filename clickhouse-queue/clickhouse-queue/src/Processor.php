@@ -4,24 +4,23 @@ namespace REES46\ClickHouse;
 use Amp\Loop;
 use Amp\Promise;
 use Amp\Socket\ConnectException;
-use League\CLImate\CLImate;
 use PHPinnacle\Ridge\Channel;
 use PHPinnacle\Ridge\Exception\ConnectionException;
 use PHPinnacle\Ridge\Message;
 use PHPinnacle\Ridge\Queue;
-use REES46\Bulk\Worker\BulkWorker;
 use REES46\Core\Clickhouse;
 use REES46\Core\RabbitMQ;
+use REES46\Event\Amp;
 use REES46\Worker\AbstractWorker;
-use REES46\Worker\WorkerTrait;
 use REES46\Core\Logger;
-use Workerman\Worker;
+use REES46\Worker\MonitoringTrait;
 
 /**
  * ClickHouse Daemon
  * @package REES46\ClickHouse
  */
 class Processor extends AbstractWorker {
+	use MonitoringTrait;
 
 	private GeoDetector $geo_detector;
 
@@ -29,10 +28,12 @@ class Processor extends AbstractWorker {
 	private bool $started = false;
 	private string $loop_check;
 	private string $loop_queue;
+	private string $loop_bad;
 
 	public function onReload() {
 		Loop::cancel($this->loop_check);
 		Loop::cancel($this->loop_queue);
+		Loop::cancel($this->loop_bad);
 		//Отписываемся от основного канала
 		RabbitMQ::get()->channel->cancel('clickhouse-' . getmypid());
 		Logger::$logger->warning('Reload');
@@ -44,8 +45,16 @@ class Processor extends AbstractWorker {
 
 	/**
 	 * @return \Generator
+	 * @throws ConnectException
+	 * @throws \Exception
 	 */
 	public function onStart() {
+
+		//Если в конфиге есть данные для мониторинга
+		if( isset($this->config['monitoring']) && static::$globalEvent instanceof Amp ) {
+			$this->initializeMonitoring();
+		}
+
 		//Подключаемся
 		yield RabbitMQ::get()->connect();
 		Clickhouse::$timeout = 30000;
@@ -55,6 +64,12 @@ class Processor extends AbstractWorker {
 		//Устанавливаем время в UTC, т.к. база вся работает только с ним
 		date_default_timezone_set('UTC');
 		Logger::$logger->info('Starting');
+
+		//Получаем список всех таблиц кликхауса
+		$tables = array_filter(array_column(yield Clickhouse::get()->execute('SHOW TABLES'), 'name'), fn($v) => !str_starts_with($v, '.'));
+		foreach($tables as $table) {
+			yield Clickhouse::get()->schema($table);
+		}
 
 		//Инициализируем определение местоположения
 		$this->geo_detector = new GeoDetector($this->config['geo']);
@@ -79,6 +94,8 @@ class Processor extends AbstractWorker {
 		$this->loop_check = Loop::repeat(60000, fn() => $this->checkConnection());
 		//Запускаем обработку очередей каждые 20 секунд
 		$this->loop_queue = Loop::repeat(20000, fn() => $this->queueUpdated());
+		//Раз в час проверяем сломанные файлы
+		$this->loop_bad = Loop::repeat(3600 * 1000, fn() => $this->queueUpdated(true));
 		Logger::$logger->info('Started');
 	}
 
@@ -135,6 +152,9 @@ class Processor extends AbstractWorker {
 		return APP_ROOT . '/tmp/' . $table . '.sql';
 	}
 
+	/**
+	 * @return Promise
+	 */
 	protected function checkConnection() {
 		return \Amp\call(function() {
 			//Проверяем коннект
@@ -157,11 +177,11 @@ class Processor extends AbstractWorker {
 	}
 
 	/**
-	 * Обрабатывает внутреннюю очередь чтобы вставить данные пачкой
+	 * Обрабатывает внутреннюю очередь, чтобы вставить данные пачкой
 	 * @param bool $force Форсированная обработка упавших файлов
 	 * @return Promise
 	 */
-	protected function queueUpdated($force = false) {
+	protected function queueUpdated(bool $force = false) {
 		return \Amp\call(function() use ($force) {
 			//Проходим по локальной очереди
 			foreach( glob(pathinfo($this->dumpPath('1'), PATHINFO_DIRNAME) . '/*.sql' . ($force ? '.*' : '')) as $filename ) {
@@ -241,6 +261,7 @@ class Processor extends AbstractWorker {
 	 * Дополняет данные при вставке в таблицу
 	 * @param array $body
 	 * @return array
+	 * @deprecated
 	 */
 	protected function beforeTableProcessor(array $body) {
 		switch( $body['table'] ) {
@@ -260,6 +281,7 @@ class Processor extends AbstractWorker {
 	 * Обработчик
 	 * @param array $body
 	 * @return Promise
+	 * @deprecated
 	 */
 	protected function tableProcessor(array $body) {
 		return \Amp\call(function() use ($body) {
@@ -282,6 +304,7 @@ class Processor extends AbstractWorker {
 	 * Обработчик таблицы заказа
 	 * @param array $body
 	 * @return Promise
+	 * @deprecated
 	 */
 	protected function orderItemProcessor(array $body) {
 		return \Amp\call(function() use ($body) {
@@ -331,6 +354,7 @@ class Processor extends AbstractWorker {
 	 * Обработчик таблицы событий
 	 * @param $body
 	 * @return Promise
+	 * @deprecated
 	 */
 	protected function eventsProcessor($body) {
 		return \Amp\call(function() use ($body) {

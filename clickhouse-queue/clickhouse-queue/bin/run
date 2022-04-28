@@ -2,25 +2,10 @@
 <?php
 
 use REES46\ClickHouse\Processor;
-use REES46\Event\Amp;
-use Workerman\Worker;
 
-require 'init.php';
+define('APP_ROOT', realpath(__DIR__ . '/..'));
+require APP_ROOT . '/vendor/rees46/core/bin/init.php';
 
-if( $cli->arguments->get('help') ) {
-	$cli->usage();
-} else {
-	//Читаем конфиги
-	$config = parse_ini_file(APP_ROOT . '/config/secrets.ini', true);
-
-	//Указываем pid основного процесса
-	Worker::$pidFile = APP_ROOT . '/log/daemon.pid';
-	Worker::$logFile = APP_ROOT . '/log/daemon.log';
-
-	Worker::$eventLoopClass = Amp::class;
-
-	$worker = new Processor($cli, $config, 'Queue worker', 'rees46-clickhouse-queue');
-
-	// run all workers
-	Worker::runAll();
-}
+WorkerRun::run(function(\League\CLImate\CLImate $cli) {
+	$server = new Processor($cli, CONFIG, 'Queue worker', 'rees46-clickhouse-queue');
+});
