@@ -1,5 +1,6 @@
 vendor/
 .idea/
 config/secrets.ini
+config/ansible
 log/
 tmp/

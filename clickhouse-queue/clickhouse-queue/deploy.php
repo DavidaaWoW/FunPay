@@ -39,6 +39,11 @@ $servers = [
 		'deploy_to' => '/home/rails/queue.products.kameleoon.com',
 		'ssh'       => $ssh_options,
 	],
+	'halyk' => [
+		'servers'   => ['10.204.11.161'],
+		'deploy_to' => '/home/rails/rees46_clickhouse_queue',
+		'ssh'       => $ssh_options,
+	],
 ];
 
 /**
