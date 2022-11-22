@@ -7,5 +7,5 @@ define('APP_ROOT', realpath(__DIR__ . '/..'));
 require APP_ROOT . '/vendor/rees46/core/bin/init.php';
 
 WorkerRun::run(function(\League\CLImate\CLImate $cli) {
-	$server = new Processor($cli, CONFIG, 'Queue worker', 'rees46-clickhouse-queue');
+	$server = new Processor($cli);
 });

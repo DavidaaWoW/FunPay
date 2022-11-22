@@ -25,7 +25,7 @@ $servers = [
 		'ssh'       => $ssh_options,
 	],
 	'personaclick' => [
-		'servers'   => ['94.130.90.232'],
+		'servers'   => ['88.99.217.82'],
 		'deploy_to' => '/home/rails/queue.personaclick.com',
 		'ssh'       => $ssh_options,
 	],

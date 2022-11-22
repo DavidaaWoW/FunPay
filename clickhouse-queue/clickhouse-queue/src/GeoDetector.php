@@ -4,6 +4,7 @@ namespace REES46\ClickHouse;
 
 use GeoIp2\Database\Reader;
 use GeoIp2\Exception\AddressNotFoundException;
+use MaxMind\Db\Reader\InvalidDatabaseException;
 
 /**
  * Class GeoDetector
@@ -14,18 +15,19 @@ class GeoDetector {
 	/**
 	 * @var Reader
 	 */
-	private $city_reader;
+	private Reader $city_reader;
 
 	/**
 	 * @var Reader
 	 */
-	private $country_reader;
+	private Reader $country_reader;
 
 	/**
 	 * GeoDetector constructor.
 	 * @param array $config
+	 * @throws InvalidDatabaseException
 	 */
-	public function __construct($config) {
+	public function __construct(array $config) {
 		// This creates the Reader object, which should be reused across lookups.
 		$this->city_reader = new Reader($config['city']);
 		$this->country_reader = new Reader($config['country']);
@@ -36,11 +38,11 @@ class GeoDetector {
 	 * @param string $ip
 	 * @return array
 	 */
-	public function detect($ip) {
+	public function detect(string $ip) {
 		try {
 			$city = $this->city_reader->city($ip);
 			$country = $this->country_reader->country($ip)->country->name;
-		} catch (AddressNotFoundException $e) {
+		} catch (AddressNotFoundException|InvalidDatabaseException $e) {
 			$city = null;
 			$country = null;
 		}

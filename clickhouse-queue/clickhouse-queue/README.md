@@ -4,19 +4,19 @@
 
 # Requirements
 
-* PHP 8.0
+* PHP 8.1
 * RabbitMQ
 * [Composer](https://getcomposer.org/)
 
 ```sh
-apt install php8.0 php8.0-cgi php8.0-dev php8.0-bcmath php8.0-mbstring php8.0-curl php8.0-pgsql php8.0-xml php8.0-gmp php-pear
+apt install php8.1 php8.1-cgi php8.1-dev php8.1-bcmath php8.1-mbstring php8.1-curl php8.1-pgsql php8.1-xml php8.1-gmp php-pear
 ```
 
 ## Install with lib Uv
 ```bash
 apt install libuv1-dev
-ln -s /etc/php/8.0/mods-available/uv.ini /etc/php/8.0/cli/conf.d/
-echo 'extension=uv.so' > /etc/php/8.0/mods-available/uv.ini
+ln -s /etc/php/8.1/mods-available/uv.ini /etc/php/8.1/cli/conf.d/
+echo 'extension=uv.so' > /etc/php/8.1/mods-available/uv.ini
 git clone https://github.com/bwoebi/php-uv.git && cd php-uv && phpize && ./configure && make && make install && cd .. && rm -rf php-uv && php -m |grep uv
 ```
 

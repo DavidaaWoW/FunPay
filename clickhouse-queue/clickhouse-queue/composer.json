@@ -2,10 +2,10 @@
   "name": "rees46/clickhouse_queue",
   "description": "REES46 ClickHouse queue with RabbitMQ",
   "require": {
-    "rees46/core": "dev-master",
-    "webgriffe/amp-elasticsearch": "dev-master",
+    "rees46/core": "v3.x-dev",
+    "webgriffe/amp-elasticsearch": "v3.x-dev",
     "geoip2/geoip2": "^2.6",
-    "phpinnacle/ridge": "dev-master",
+    "phpinnacle/ridge": "v2.x-dev",
     "sahil-gulati/reqrequest": "^1.0"
   },
   "autoload": {
@@ -13,6 +13,7 @@
       "REES46\\ClickHouse\\": "src/"
     }
   },
+  "minimum-stability": "beta",
   "repositories": [
     {
       "type": "vcs",

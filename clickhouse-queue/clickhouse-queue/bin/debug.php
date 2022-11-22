@@ -6,7 +6,10 @@
 
 use REES46\ClickHouse\Processor;
 
-require_once 'init.php';
+define('APP_ROOT', realpath(__DIR__ . '/..'));
+require APP_ROOT . '/vendor/rees46/core/bin/init.php';
 
-$api = new Processor($cli, $config, 'Queue worker', 'rees46-clickhouse-queue');
+$cli = WorkerRun::init();
+
+$api = new Processor($cli);
 $api->onWorkerStarted();
