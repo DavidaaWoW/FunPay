@@ -3,7 +3,6 @@ namespace REES46\ClickHouse;
 
 use Amp\Socket\ConnectException;
 use League\CLImate\CLImate;
-use MaxMind\Db\Reader\InvalidDatabaseException;
 use PHPinnacle\Ridge\Channel;
 use PHPinnacle\Ridge\Exception\ConnectionException;
 use PHPinnacle\Ridge\Message;
@@ -21,8 +20,6 @@ use function Amp\delay;
  * @package REES46\ClickHouse
  */
 class Processor extends BaseConsumeWorker {
-
-	private GeoDetector $geo_detector;
 
 	private array $queue_time = [];
 	private bool $started = false;
@@ -55,7 +52,6 @@ class Processor extends BaseConsumeWorker {
 	/**
 	 * @throws ClickhouseException
 	 * @throws ConnectException
-	 * @throws InvalidDatabaseException
 	 * @throws ConsumeAlreadyExist
 	 */
 	public function onStarted(): void {
@@ -69,9 +65,6 @@ class Processor extends BaseConsumeWorker {
 		foreach( $tables as $table ) {
 			Clickhouse::get()->schema($table);
 		}
-
-		//Инициализируем определение местоположения
-		$this->geo_detector = new GeoDetector($this->config['geo']);
 
 		//Сначала обрабатываем очередь
 		$this->queueUpdated();
@@ -101,35 +94,45 @@ class Processor extends BaseConsumeWorker {
 	public function received(Message $message, Channel $channel): void {
 		try {
 			$this->task_working++;
-			//Делаем работу
-			$body = $this->beforeTableProcessor(json_decode($message->content, true));
+
+			//Новый вариант, когда таблица отправляется в заголовках.
+			//При этом хорошо бы, чтоб формат данных был корректный, тогда не придется декодировать и кодировать json. Т.к. Clickhouse не дает вставить число в строковую колонку.
+			if( $message->header('table') ) {
+				$table = $message->header('table');
+				$values = json_decode($message->content, true);
+			} else {
+				//Старый вариант вставки
+				$body = json_decode($message->content, true);
+				$table = $body['table'];
+				$values = $body['values'];
+			}
 
 			//Форматируем вставляемые данные
-			$values = Clickhouse::get()->format($body['table'], $body['values']);
-
-			//Добавляем дефолтные данные
-			$values = Clickhouse::get()->setDefaultValues($body['table'], $values);
+			foreach( $values as $column => $value ) {
+				$values[$column] = Clickhouse::get()->convertToType($table, $column, $value);
+			}
 
 			//Добавляем строку в файл вставки
-			file_put_contents($this->dumpPath($body['table']), '(' . implode(',', $values) . ')' . PHP_EOL, FILE_APPEND);
+			$path = $this->dumpPath($table);
+			file_put_contents($path, json_encode($values, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
 
 			//Запоминаем время вставки
-			if( !isset($this->queue_time[$body['table']]) ) {
-				$this->queue_time[$body['table']] = time();
+			if( !isset($this->queue_time[$table]) ) {
+				$this->queue_time[$table] = time();
 			}
 
 			//Подтверждаем прием
 			$channel->ack($message);
 
 			//Если набрали данных на пачку
-			if( $this->availableForProcessing($body['table']) ) {
-				$this->queueProcessing($body['table']);
+			if( $this->availableForProcessing($table) ) {
+				$this->queueProcessing($path, $table);
 			}
 		} catch (ConnectionException|ConnectException $e) {
 			delay(10);
 			$channel->reject($message);
 		} catch (\Throwable $e) {
-			Logger::$logger->error(get_class($e) . ', ' . $e->getMessage() . ', message: ' . $message->content, array_slice($e->getTrace(), 0, 2));
+			Logger::$logger->error(get_class($e) . ', ' . $e->getMessage() . ', table: ' . $table . ', message: ' . json_encode($values, JSON_UNESCAPED_UNICODE) . PHP_EOL . $e->getTraceAsString());
 			delay(10);
 			try {
 				$channel->reject($message);
@@ -147,7 +150,7 @@ class Processor extends BaseConsumeWorker {
 	 * @return string
 	 */
 	protected function dumpPath(string $table) {
-		return APP_ROOT . '/tmp/' . $table . '.sql';
+		return APP_ROOT . '/tmp/' . $table . '.json';
 	}
 
 	/**
@@ -156,14 +159,10 @@ class Processor extends BaseConsumeWorker {
 	 */
 	protected function queueUpdated(bool $force = false): void {
 		//Проходим по локальной очереди
-		foreach( glob(pathinfo($this->dumpPath('1'), PATHINFO_DIRNAME) . '/*.sql' . ($force ? '.*' : '')) as $filename ) {
-			$table = pathinfo(preg_replace('/\.sql(\..*?)?$/', '.sql', $filename), PATHINFO_FILENAME);
-			//Для обработки сдохших файлов
-			if( $force && preg_match('/\.sql(\..*?)?$/', $filename) ) {
-				rename($filename, $this->dumpPath($table));
-			}
-			if( $this->availableForProcessing($table) ) {
-				$this->queueProcessing($table);
+		foreach( glob(pathinfo($this->dumpPath('1'), PATHINFO_DIRNAME) . '/*.json' . ($force ? '.*' : '')) as $filename ) {
+			$table = pathinfo(preg_replace('/\.json(\..*?)?$/', '.json', $filename), PATHINFO_FILENAME);
+			if( $force || $this->availableForProcessing($table) ) {
+				$this->queueProcessing($filename, $table);
 			}
 		}
 	}
@@ -193,222 +192,25 @@ class Processor extends BaseConsumeWorker {
 
 	/**
 	 * Запускает обработку очереди для указанной таблицы
-	 * @param $table
+	 * @param string $file
+	 * @param string $table
 	 */
-	protected function queueProcessing($table): void {
+	protected function queueProcessing(string $file, string $table): void {
 		//Копируем данные, чтобы во время обработки их не дополнили случайно
-		$path = $this->dumpPath($table) . '.' . uniqid();
-		rename($this->dumpPath($table), $path);
-
-		unset($this->queue_time[$table]);
+		if( str_ends_with($file, '.json') ) {
+			$path = $file . '.' . uniqid();
+			rename($file, $path);
+			unset($this->queue_time[$table]);
+		} else {
+			$path = $file;
+		}
 
 		try {
 			$data = file_get_contents($path);
-			Clickhouse::get()->bulkDataInsert($data, $table);
+			Clickhouse::get()->bulkDataInsertJson($data, $table);
 			unlink($path);
 		} catch (\Exception $e) {
 			Logger::$logger->error(get_class($e) . ', ' . $e->getMessage(), array_slice($e->getTrace(), 0, 2));
-		}
-
-		//Дополнительные алгоритмы при вставке в таблицу
-		//foreach( $bulk as $data ) {
-		//	$time = microtime(true);
-		//	try {
-		//		$this->tableProcessor($data['body']);
-		//	} catch (\Exception $e) {
-		//		Logger::$logger->error($e->getMessage(), $e->getTrace());
-		//	} finally {
-		//		if( Logger::$logger->isHandling(\Monolog\Logger::INFO) ) {
-		//			Logger::$logger->info("\e[1;36" . "mProcessing table $table \e[1;35m(" . round((microtime(true) - $time) * 1000, 2) . "ms)\e[0m");
-		//		}
-		//	}
-		//}
-	}
-
-	/**
-	 * Дополняет данные при вставке в таблицу
-	 * @param array $body
-	 * @return array
-	 * @deprecated
-	 */
-	protected function beforeTableProcessor(array $body) {
-		switch( $body['table'] ) {
-
-			//Дополняем данными о местоположении по ip
-			//deprecated
-			case 'visits':
-				if( !empty($body['values']['ip']) ) {
-					$body['values'] = array_merge($body['values'], $this->geo_detector->detect($body['values']['ip']));
-				}
-				break;
-		}
-		return $body;
-	}
-
-	/**
-	 * Обработчик
-	 * @param array $body
-	 * @deprecated
-	 */
-	protected function tableProcessor(array $body): void {
-		switch( $body['table'] ) {
-
-			//Таблица событий
-			case 'events':
-				$this->eventsProcessor($body);
-				break;
-
-			//Таблица заказов
-			case 'order_items':
-				$this->orderItemProcessor($body);
-				break;
-		}
-	}
-
-	/**
-	 * Обработчик таблицы заказа
-	 * @param array $body
-	 * @deprecated
-	 */
-	protected function orderItemProcessor(array $body): void {
-
-		//Если дополнительные параметры или бренд не указаны, выходим
-		if( empty($body['opts']) || empty($body['values']['brand']) || empty($body['values']['did']) ) {
-			return;
-		}
-
-		//Дата выборки
-		$date = date('Y-m-d', strtotime('-2 DAYS'));
-
-		//Получаем список компаний
-		$campaigns = Clickhouse::get()->execute("SELECT DISTINCT object_id, brand FROM recone_actions WHERE did = :did AND shop_id = :shop_id AND event = 'click' AND item_id = :item_id AND object_type = 'VendorCampaign' AND date >= '{$date}'", [
-			'did'     => $body['values']['did'],
-			'shop_id' => $body['values']['shop_id'],
-			'item_id' => $body['values']['item_uniqid'],
-		]);
-
-		//Если нашлись компании вендоров
-		if( !empty($campaigns) ) {
-			foreach( $campaigns as $campaign ) {
-
-				//Добавляем событие в очередь
-				RabbitMQ::get()->push('recone_actions', [
-					'did'            => $body['values']['did'],
-					'sid'            => $body['opts']['current_session_code'] ?? '',
-					'shop_id'        => $body['values']['shop_id'],
-					'event'          => 'purchase',
-					'item_id'        => $body['values']['item_uniqid'],
-					'object_type'    => 'VendorCampaign',
-					'object_id'      => $campaign['object_id'],
-					'object_price'   => 0,
-					'price'          => $body['values']['price'],
-					'amount'         => $body['values']['amount'] ?? 1,
-					'brand'          => $body['values']['brand'],
-					'recommended_by' => $body['values']['recommended_by'] ?? null,
-					'referer'        => null,
-					'position'       => $body['values']['position'] ?? null,
-				]);
-			}
-		}
-	}
-
-	/**
-	 * Обработчик таблицы событий
-	 * @param $body
-	 * @deprecated
-	 */
-	protected function eventsProcessor($body): void {
-
-		//Дата выборки
-		$date = date('Y-m-d', strtotime('-2 HOUR'));
-		$dateTime = date('Y-m-d H:i:s', strtotime('-2 HOUR'));
-		$dateHour = date('Y-m-d', strtotime('-1 HOUR'));
-		$dateTimeHour = date('Y-m-d H:i:s', strtotime('-1 HOUR'));
-
-		//Если было событие просмотра товара и указан, что пришел из рекомендера и у товара есть бренд
-		//Пробуем найти событие recone_view которое добавляется при генерации рекомендации
-		//Если событие просмотра было найдено и нашлась кампания, добавляем, что клиент кликнул по нашему баннеру
-		//---
-		//Для события корзины или покупки, проверяем, если не было события клика, а сразу добавлен в корзину или куплен в один клик, добавляем клик.
-		if( in_array($body['values']['event'], ['view', 'cart', 'purchase']) && $body['values']['category'] == 'Item' && $body['values']['recommended_by'] && $body['values']['brand'] ) {
-
-			//Получаем последнюю. Если будут проблемы с простановкой флага recommended_by при просмотре товара, просто убрать фильтрацию и брать recommended_by из события.
-			$campaigns = Clickhouse::get()->execute("SELECT DISTINCT object_id, object_price, brand FROM recone_actions
-					WHERE did = :did AND shop_id = :shop_id AND event = :event AND item_id = :item_id AND object_type = :object_type AND recommended_by = :recommended_by
-								AND date >= '{$date}' AND created_at >= '{$dateTime}' ORDER BY created_at DESC", [
-				'did'            => $body['values']['did'],
-				'shop_id'        => $body['values']['shop_id'],
-				'event'          => 'view',
-				'item_id'        => $body['values']['label'],
-				'object_type'    => 'VendorCampaign',
-				'recommended_by' => $body['values']['recommended_by'],
-			]);
-
-			//Если нашлись компании вендоров
-			if( !empty($campaigns) ) {
-				foreach( $campaigns as $campaign ) {
-
-					//Если событие просмотра товара, то разрешаем добавлять клик
-					$access = $body['values']['event'] == 'view';
-
-					//Проверяем, чтобы не было повторного клика в течении часа только для текущей кампании
-					if( $body['values']['event'] == 'view' ) {
-						$actions = Clickhouse::get()->execute("SELECT 1 FROM recone_actions WHERE did = :did AND shop_id = :shop_id AND event = :event AND object_type = :object_type AND object_id = :object_id
-							  AND date >= '{$dateHour}' AND created_at >= '{$dateTimeHour}' ORDER BY created_at DESC", [
-							'did'         => $body['values']['did'],
-							'shop_id'     => $body['values']['shop_id'],
-							'event'       => 'click',
-							'object_type' => 'VendorCampaign',
-							'object_id'   => $campaign['object_id'],
-						]);
-						//Если вернулся пустой результат, добавляем событие клика
-						$access = empty($actions);
-					}
-
-					//Если событие корзины или покупки и клика не было
-					if( in_array($body['values']['event'], ['cart', 'purchase']) && $access ) {
-
-						try {
-							$actions = Clickhouse::get()->execute("SELECT 1 FROM recone_actions WHERE did = :did AND shop_id = :shop_id AND event = :event AND item_id = :item_id AND object_type = :object_type AND object_id = :object_id AND recommended_by = :recommended_by
-								  AND date >= '{$date}' AND created_at >= '{$dateTime}' ORDER BY created_at DESC", [
-								'did'            => $body['values']['did'],
-								'shop_id'        => $body['values']['shop_id'],
-								'event'          => 'click',
-								'item_id'        => $body['values']['label'],
-								'object_type'    => 'VendorCampaign',
-								'object_id'      => $campaign['object_id'],
-								'recommended_by' => $body['values']['recommended_by'],
-							]);
-
-							//Если вернулся пустой результат, добавляем событие клика
-							$access = empty($actions);
-						} catch (\Exception $e) {
-							Logger::$logger->error(get_class($e) . ', ' . $e->getMessage() . ' ' . $e->getTraceAsString());
-							$access = false;
-						}
-					}
-
-					//Добавляем событие в очередь
-					if( $access ) {
-						RabbitMQ::get()->push('recone_actions', [
-							'did'            => $body['values']['did'],
-							'sid'            => $body['values']['sid'] ?? '',
-							'shop_id'        => $body['values']['shop_id'],
-							'event'          => 'click',
-							'item_id'        => $body['values']['label'],
-							'object_type'    => 'VendorCampaign',
-							'object_id'      => $campaign['object_id'] ?? -1,
-							'object_price'   => $campaign['object_price'] ?? -1,
-							'price'          => $body['values']['price'],
-							'amount'         => 1,
-							'brand'          => $body['values']['brand'],
-							'recommended_by' => $body['values']['recommended_by'],
-							'referer'        => null,
-							'position'       => $body['values']['position'] ?? null,
-						]);
-					}
-				}
-			}
 		}
 	}
 }

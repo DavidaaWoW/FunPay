@@ -2,7 +2,7 @@
   "name": "rees46/clickhouse_queue",
   "description": "REES46 ClickHouse queue with RabbitMQ",
   "require": {
-    "rees46/core": "v3.x-dev",
+    "rees46/core": "dev-master",
     "webgriffe/amp-elasticsearch": "v3.x-dev",
     "geoip2/geoip2": "^2.6",
     "phpinnacle/ridge": "v2.x-dev",

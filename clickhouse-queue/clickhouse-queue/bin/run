@@ -1,11 +1,13 @@
 #!/usr/bin/env php
 <?php
 
+use REES46\ClickHouse\ProcessorOld;
 use REES46\ClickHouse\Processor;
 
 define('APP_ROOT', realpath(__DIR__ . '/..'));
 require APP_ROOT . '/vendor/rees46/core/bin/init.php';
 
 WorkerRun::run(function(\League\CLImate\CLImate $cli) {
-	$server = new Processor($cli);
+	new ProcessorOld($cli);
+	new Processor($cli);
 });

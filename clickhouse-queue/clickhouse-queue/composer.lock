@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8cf55f6986408f4fe123a19ec8b3964b",
+    "content-hash": "e909c1ba4a2c71fa6f1fd6154128bd4e",
     "packages": [
         {
             "name": "amphp/amp",
@@ -96,16 +96,16 @@
         },
         {
             "name": "amphp/byte-stream",
-            "version": "v2.0.0-beta.13",
+            "version": "v2.0.0-beta.12",
             "source": {
                 "type": "git",
                 "url": "https://github.com/amphp/byte-stream.git",
-                "reference": "12a5d46d2f4ed55321cbe0d53e471107d2ddc046"
+                "reference": "a4aa2af367f655188b3924a403ee9748098f23d0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/amphp/byte-stream/zipball/12a5d46d2f4ed55321cbe0d53e471107d2ddc046",
-                "reference": "12a5d46d2f4ed55321cbe0d53e471107d2ddc046",
+                "url": "https://api.github.com/repos/amphp/byte-stream/zipball/a4aa2af367f655188b3924a403ee9748098f23d0",
+                "reference": "a4aa2af367f655188b3924a403ee9748098f23d0",
                 "shasum": ""
             },
             "require": {
@@ -164,7 +164,7 @@
             ],
             "support": {
                 "issues": "https://github.com/amphp/byte-stream/issues",
-                "source": "https://github.com/amphp/byte-stream/tree/v2.0.0-beta.13"
+                "source": "https://github.com/amphp/byte-stream/tree/v2.0.0-beta.12"
             },
             "funding": [
                 {
@@ -172,7 +172,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-11-16T16:46:11+00:00"
+            "time": "2022-11-07T21:02:34+00:00"
         },
         {
             "name": "amphp/cache",
@@ -2350,12 +2350,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/PNixx/ridge.git",
-                "reference": "bbb2cf5a9c8bd191205df91e5f5c8aec12b10000"
+                "reference": "2a60eb30eaf903fed6eff4a7b247cd272b68131a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PNixx/ridge/zipball/bbb2cf5a9c8bd191205df91e5f5c8aec12b10000",
-                "reference": "bbb2cf5a9c8bd191205df91e5f5c8aec12b10000",
+                "url": "https://api.github.com/repos/PNixx/ridge/zipball/2a60eb30eaf903fed6eff4a7b247cd272b68131a",
+                "reference": "2a60eb30eaf903fed6eff4a7b247cd272b68131a",
                 "shasum": ""
             },
             "require": {
@@ -2420,7 +2420,7 @@
             "support": {
                 "source": "https://github.com/PNixx/ridge/tree/v2"
             },
-            "time": "2022-11-18T11:51:36+00:00"
+            "time": "2022-11-24T14:05:28+00:00"
         },
         {
             "name": "psr/http-message",
@@ -2527,14 +2527,15 @@
         },
         {
             "name": "rees46/core",
-            "version": "v3.x-dev",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "git@bitbucket.org:mkechinov/rees46-core.git",
-                "reference": "4b15f6a4d6a3f7f1b5b5d823596d4b9a8a863e23"
+                "reference": "85bdefaaf89e35c8a241f5fc8b0e47df1040741f"
             },
             "require": {
                 "amphp/amp": "^v3.0",
+                "amphp/byte-stream": "v2.0.0-beta.12",
                 "amphp/cache": "^v2.0",
                 "amphp/file": "^v3.0",
                 "amphp/http-client": "^v5.0",
@@ -2560,6 +2561,7 @@
                 "matomo/device-detector": "^6.0",
                 "phpunit/phpunit": "*"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -2578,7 +2580,7 @@
                 }
             ],
             "description": "Library for all services",
-            "time": "2022-11-22T12:54:52+00:00"
+            "time": "2022-11-28T08:20:55+00:00"
         },
         {
             "name": "revolt/event-loop",

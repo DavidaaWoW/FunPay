@@ -12,4 +12,4 @@ require APP_ROOT . '/vendor/rees46/core/bin/init.php';
 $cli = WorkerRun::init();
 
 $api = new Processor($cli);
-$api->onWorkerStarted();
+$api->run();
