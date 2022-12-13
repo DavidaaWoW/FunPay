@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e909c1ba4a2c71fa6f1fd6154128bd4e",
+    "content-hash": "6e48903e17aa95f0c40bd2b36c9816b1",
     "packages": [
         {
             "name": "amphp/amp",
@@ -2350,12 +2350,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/PNixx/ridge.git",
-                "reference": "2a60eb30eaf903fed6eff4a7b247cd272b68131a"
+                "reference": "3ef3b48885b3bbfcbabb5c658aac878707071f36"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PNixx/ridge/zipball/2a60eb30eaf903fed6eff4a7b247cd272b68131a",
-                "reference": "2a60eb30eaf903fed6eff4a7b247cd272b68131a",
+                "url": "https://api.github.com/repos/PNixx/ridge/zipball/3ef3b48885b3bbfcbabb5c658aac878707071f36",
+                "reference": "3ef3b48885b3bbfcbabb5c658aac878707071f36",
                 "shasum": ""
             },
             "require": {
@@ -2420,7 +2420,7 @@
             "support": {
                 "source": "https://github.com/PNixx/ridge/tree/v2"
             },
-            "time": "2022-11-24T14:05:28+00:00"
+            "time": "2022-12-02T13:28:12+00:00"
         },
         {
             "name": "psr/http-message",
@@ -2530,8 +2530,8 @@
             "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "git@bitbucket.org:mkechinov/rees46-core.git",
-                "reference": "85bdefaaf89e35c8a241f5fc8b0e47df1040741f"
+                "url": "ssh://git@git.jetbrains.space/rees46/dev/core-php.git",
+                "reference": "2ec12aa499070681a66c71b07d262be01e6358c9"
             },
             "require": {
                 "amphp/amp": "^v3.0",
@@ -2580,7 +2580,7 @@
                 }
             ],
             "description": "Library for all services",
-            "time": "2022-11-28T08:20:55+00:00"
+            "time": "2022-12-09T12:32:20+00:00"
         },
         {
             "name": "revolt/event-loop",

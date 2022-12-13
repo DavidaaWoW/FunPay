@@ -21,7 +21,7 @@
     },
     {
       "type": "git",
-      "url": "git@bitbucket.org:mkechinov/rees46-core.git"
+      "url": "ssh://git@git.jetbrains.space/rees46/dev/core-php.git"
     },
     {
       "type": "vcs",

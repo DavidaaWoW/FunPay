@@ -8,7 +8,7 @@
 
 namespace REES46\Core;
 
-$repo_url = 'git@bitbucket.org:mkechinov/rees46_clickhouse_queue.git';
+$repo_url = 'ssh://git@git.jetbrains.space/rees46/dev/clickhouse-queue.git';
 $branch = 'master';
 $ssh_options = [
 	'user' => 'rails',
@@ -21,6 +21,11 @@ $ssh_options = [
 $servers = [
 	'rees46' => [
 		'servers'   => ['81.163.20.236'],
+		'deploy_to' => '/home/rails/rees46_clickhouse_queue',
+		'ssh'       => $ssh_options,
+	],
+	'croc' => [
+		'servers'   => ['10.2.1.41'],
 		'deploy_to' => '/home/rails/rees46_clickhouse_queue',
 		'ssh'       => $ssh_options,
 	],
