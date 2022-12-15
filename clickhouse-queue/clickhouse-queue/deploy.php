@@ -20,11 +20,6 @@ $ssh_options = [
  */
 $servers = [
 	'rees46' => [
-		'servers'   => ['81.163.20.236'],
-		'deploy_to' => '/home/rails/rees46_clickhouse_queue',
-		'ssh'       => $ssh_options,
-	],
-	'croc' => [
 		'servers'   => ['10.2.1.41'],
 		'deploy_to' => '/home/rails/rees46_clickhouse_queue',
 		'ssh'       => $ssh_options,

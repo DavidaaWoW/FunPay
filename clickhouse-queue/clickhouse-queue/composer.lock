@@ -2350,12 +2350,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/PNixx/ridge.git",
-                "reference": "3ef3b48885b3bbfcbabb5c658aac878707071f36"
+                "reference": "85fc1b10bc8d21d5adf5a2cdbc0b12252fec2b97"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PNixx/ridge/zipball/3ef3b48885b3bbfcbabb5c658aac878707071f36",
-                "reference": "3ef3b48885b3bbfcbabb5c658aac878707071f36",
+                "url": "https://api.github.com/repos/PNixx/ridge/zipball/85fc1b10bc8d21d5adf5a2cdbc0b12252fec2b97",
+                "reference": "85fc1b10bc8d21d5adf5a2cdbc0b12252fec2b97",
                 "shasum": ""
             },
             "require": {
@@ -2420,7 +2420,7 @@
             "support": {
                 "source": "https://github.com/PNixx/ridge/tree/v2"
             },
-            "time": "2022-12-02T13:28:12+00:00"
+            "time": "2022-12-14T15:43:07+00:00"
         },
         {
             "name": "psr/http-message",
@@ -2531,7 +2531,7 @@
             "source": {
                 "type": "git",
                 "url": "ssh://git@git.jetbrains.space/rees46/dev/core-php.git",
-                "reference": "2ec12aa499070681a66c71b07d262be01e6358c9"
+                "reference": "1b8c9925f4720aefd6168b57b9e0c33d97ef92a4"
             },
             "require": {
                 "amphp/amp": "^v3.0",
@@ -2580,7 +2580,7 @@
                 }
             ],
             "description": "Library for all services",
-            "time": "2022-12-09T12:32:20+00:00"
+            "time": "2022-12-14T13:32:03+00:00"
         },
         {
             "name": "revolt/event-loop",
@@ -2792,16 +2792,16 @@
         },
         {
             "name": "workerman/workerman",
-            "version": "v4.1.4",
+            "version": "v4.1.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/walkor/workerman.git",
-                "reference": "83e007acf936e2233ac92d7368b87716f2bae338"
+                "reference": "16bcfc2c7574feea46cdadaaa8ae73f14d464b21"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/walkor/workerman/zipball/83e007acf936e2233ac92d7368b87716f2bae338",
-                "reference": "83e007acf936e2233ac92d7368b87716f2bae338",
+                "url": "https://api.github.com/repos/walkor/workerman/zipball/16bcfc2c7574feea46cdadaaa8ae73f14d464b21",
+                "reference": "16bcfc2c7574feea46cdadaaa8ae73f14d464b21",
                 "shasum": ""
             },
             "require": {
@@ -2851,7 +2851,7 @@
                     "type": "patreon"
                 }
             ],
-            "time": "2022-10-09T11:33:14+00:00"
+            "time": "2022-12-14T11:58:06+00:00"
         }
     ],
     "packages-dev": [],
