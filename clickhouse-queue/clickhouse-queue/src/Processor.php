@@ -41,7 +41,7 @@ class Processor extends BaseConsumeWorker {
 	public function initializeConnections(): void {
 
 		//Устанавливаем при подключении
-		RabbitMQ::get()->pool = 500;
+		RabbitMQ::get()->pool = 10;
 	}
 
 	public function onReload(): void {
