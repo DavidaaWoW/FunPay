@@ -7,12 +7,12 @@ use PHPinnacle\Ridge\Channel;
 use PHPinnacle\Ridge\Exception\ConnectionException;
 use PHPinnacle\Ridge\Message;
 use REES46\Core\Clickhouse;
-use REES46\Core\RabbitMQ;
+use REES46\RabbitMQ\RabbitMQ;
 use REES46\Error\ClickhouseException;
-use REES46\Error\ConsumeAlreadyExist;
 use REES46\Core\Logger;
 use REES46\Worker\BaseConsumeWorker;
 use Revolt\EventLoop;
+use function Amp\async;
 use function Amp\delay;
 
 /**
@@ -25,6 +25,7 @@ class Processor extends BaseConsumeWorker {
 	private bool $started = false;
 	private string $loop_queue;
 	private string $loop_bad;
+	private bool $lock = false;
 
 	/**
 	 * API WebServer constructor.
@@ -51,8 +52,6 @@ class Processor extends BaseConsumeWorker {
 
 	/**
 	 * @throws ClickhouseException
-	 * @throws ConnectException
-	 * @throws ConsumeAlreadyExist
 	 */
 	public function onStarted(): void {
 		Clickhouse::$timeout = 60;
@@ -66,9 +65,21 @@ class Processor extends BaseConsumeWorker {
 			Clickhouse::get()->schema($table);
 		}
 
+		//Функция обработки сломанных файлов
+		$bad = function() {
+			if( !$this->lock ) {
+				try {
+					$this->lock = true;
+					$this->queueUpdated(true);
+				} finally {
+					$this->lock = false;
+				}
+			}
+		};
+
 		//Сначала обрабатываем очередь
 		$this->queueUpdated();
-		$this->queueUpdated(true);
+		async($bad);
 		Logger::$logger->info('Queue cleared');
 		$this->started = true;
 		delay(1);
@@ -82,8 +93,7 @@ class Processor extends BaseConsumeWorker {
 		//Запускаем обработку очередей каждые 20 секунд
 		$this->loop_queue = EventLoop::repeat(20, fn() => $this->queueUpdated());
 		//Раз в час проверяем сломанные файлы
-		$this->loop_bad = EventLoop::repeat(3600, fn() => $this->queueUpdated(true));
-		Logger::$logger->info('Started');
+		$this->loop_bad = EventLoop::repeat(3600, $bad);
 	}
 
 	/**
