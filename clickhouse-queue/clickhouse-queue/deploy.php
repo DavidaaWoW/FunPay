@@ -24,13 +24,18 @@ $servers = [
 		'deploy_to' => '/home/rails/rees46_clickhouse_queue',
 		'ssh'       => $ssh_options,
 	],
+	'shopify' => [
+		'servers'   => ['94.130.22.95'],
+		'deploy_to' => '/home/rails/rees46_clickhouse_queue',
+		'ssh'       => $ssh_options,
+	],
 	'personaclick' => [
 		'servers'   => ['88.99.217.82'],
 		'deploy_to' => '/home/rails/queue.personaclick.com',
 		'ssh'       => $ssh_options,
 	],
 	'technodom' => [
-		'servers'   => ['194.169.87.42'],
+		'servers'   => ['172.22.254.2'],
 		'deploy_to' => '/home/rails/queue.r46.technodom.kz',
 		'ssh'       => $ssh_options,
 	],
@@ -55,7 +60,7 @@ if( !class_exists('Composer\Autoload\ClassLoader', false) ) {
 }
 
 //Запускаем деплой
-$level = Logger::TYPE_WARN;
+$level = Logger::TYPE_ERROR;
 Deploy::$reload_cmd = 'bin/run reload';
 $deploy = new Deploy($repo_url, $branch, $servers, $argv);
 $deploy->execute($level);

@@ -12,27 +12,11 @@
 apt install php8.1 php8.1-cgi php8.1-dev php8.1-bcmath php8.1-mbstring php8.1-curl php8.1-pgsql php8.1-xml php8.1-gmp php-pear
 ```
 
-## Install with lib Uv
-```bash
-apt install libuv1-dev
-ln -s /etc/php/8.1/mods-available/uv.ini /etc/php/8.1/cli/conf.d/
-echo 'extension=uv.so' > /etc/php/8.1/mods-available/uv.ini
-git clone https://github.com/bwoebi/php-uv.git && cd php-uv && phpize && ./configure && make && make install && cd .. && rm -rf php-uv && php -m |grep uv
-```
-
 ## Download Composer
 Run this in your terminal to get the latest Composer version:
 
 ```bash
 php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && php composer-setup.php && php -r "unlink('composer-setup.php');" && mv composer.phar /usr/local/bin/composer
-```
-
-## Download GeoIP
-
-```bash
-mkdir -p /home/rails/geo_ip
-wget http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz && tar -xvf GeoLite2-City.tar.gz && mv GeoLite2-City_*/GeoLite2-City.mmdb /home/rails/geo_ip/ && rm -Rf GeoLite2-*
-wget http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.tar.gz && tar -xvf GeoLite2-Country.tar.gz && mv GeoLite2-Country_*/GeoLite2-Country.mmdb /home/rails/geo_ip/ && rm -Rf GeoLite2-*
 ```
 
 ## Install
@@ -51,9 +35,4 @@ composer install
 
 ```sh
 ./bin/run start -v debug
-```
-
-## Fix upload chain messages
-```sh
-for d in chain_messages.sql.*; do split -l 2000 "$d" "$d"; rm "$d"; done
 ```

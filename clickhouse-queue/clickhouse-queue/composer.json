@@ -13,7 +13,16 @@
       "REES46\\ClickHouse\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "REES46\\ClickHouse\\Test\\": "test/"
+    }
+  },
   "minimum-stability": "beta",
+  "require-dev": {
+    "phpunit/phpunit": "*",
+    "amphp/phpunit-util": "*"
+  },
   "repositories": [
     {
       "type": "vcs",

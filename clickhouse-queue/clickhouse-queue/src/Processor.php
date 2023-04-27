@@ -7,6 +7,7 @@ use PHPinnacle\Ridge\Channel;
 use PHPinnacle\Ridge\Exception\ConnectionException;
 use PHPinnacle\Ridge\Message;
 use REES46\Core\Clickhouse;
+use REES46\Core\SpaceMessage;
 use REES46\RabbitMQ\RabbitMQ;
 use REES46\Error\ClickhouseException;
 use REES46\Core\Logger;
@@ -32,7 +33,7 @@ class Processor extends BaseConsumeWorker {
 	 * @param CLImate $cli
 	 */
 	public function __construct(CLImate $cli) {
-		parent::__construct($cli, CONFIG, 'Queue worker', 'rees46-clickhouse-queue');
+		parent::__construct($cli, CONFIG, 'Clickhouse Queue Worker', 'rees46-clickhouse-queue');
 	}
 
 	/**
@@ -54,9 +55,9 @@ class Processor extends BaseConsumeWorker {
 	 * @throws ClickhouseException
 	 */
 	public function onStarted(): void {
-		Clickhouse::$timeout = 60;
-		Clickhouse::$inactive_timeout = 60;
-		Clickhouse::$transfer_timeout = 60;
+		Clickhouse::$timeout = 120;
+		Clickhouse::$inactive_timeout = 120;
+		Clickhouse::$transfer_timeout = 120;
 		Logger::$logger->info('Starting');
 
 		//Получаем список всех таблиц кликхауса
@@ -65,24 +66,11 @@ class Processor extends BaseConsumeWorker {
 			Clickhouse::get()->schema($table);
 		}
 
-		//Функция обработки сломанных файлов
-		$bad = function() {
-			if( !$this->lock ) {
-				try {
-					$this->lock = true;
-					$this->queueUpdated(true);
-				} finally {
-					$this->lock = false;
-				}
-			}
-		};
-
 		//Сначала обрабатываем очередь
 		$this->queueUpdated();
-		async($bad);
+		async(fn() => $this->queueUpdated(true));
 		Logger::$logger->info('Queue cleared');
 		$this->started = true;
-		delay(1);
 
 		//Подписываемся на канал
 		RabbitMQ::get()->channel->queueDeclare(RabbitMQ::CLICKHOUSE_QUEUE, false, true);
@@ -93,7 +81,7 @@ class Processor extends BaseConsumeWorker {
 		//Запускаем обработку очередей каждые 20 секунд
 		$this->loop_queue = EventLoop::repeat(20, fn() => $this->queueUpdated());
 		//Раз в час проверяем сломанные файлы
-		$this->loop_bad = EventLoop::repeat(3600, $bad);
+		$this->loop_bad = EventLoop::repeat(3600, fn() => $this->queueUpdated(true));
 	}
 
 	/**
@@ -133,16 +121,12 @@ class Processor extends BaseConsumeWorker {
 
 			//Подтверждаем прием
 			$channel->ack($message);
-
-			//Если набрали данных на пачку
-			if( $this->availableForProcessing($table) ) {
-				$this->queueProcessing($path, $table);
-			}
 		} catch (ConnectionException|ConnectException $e) {
 			delay(10);
 			$channel->reject($message);
 		} catch (\Throwable $e) {
 			Logger::$logger->error(get_class($e) . ', ' . $e->getMessage() . ', table: ' . $table . ', message: ' . json_encode($values, JSON_UNESCAPED_UNICODE) . PHP_EOL . $e->getTraceAsString());
+			SpaceMessage::throw($this->name, $e, ['method' => 'Processor::received', 'line' => __LINE__, 'table' => $table, 'values' => $values]);
 			delay(10);
 			try {
 				$channel->reject($message);
@@ -167,12 +151,22 @@ class Processor extends BaseConsumeWorker {
 	 * Обрабатывает внутреннюю очередь, чтобы вставить данные пачкой
 	 * @param bool $force Форсированная обработка упавших файлов
 	 */
-	protected function queueUpdated(bool $force = false): void {
-		//Проходим по локальной очереди
-		foreach( glob(pathinfo($this->dumpPath('1'), PATHINFO_DIRNAME) . '/*.json' . ($force ? '.*' : '')) as $filename ) {
-			$table = pathinfo(preg_replace('/\.json(\..*?)?$/', '.json', $filename), PATHINFO_FILENAME);
-			if( $force || $this->availableForProcessing($table) ) {
-				$this->queueProcessing($filename, $table);
+	public function queueUpdated(bool $force = false): void {
+		if( !$this->lock ) {
+			try {
+				$this->lock = true;
+				//Проходим по локальной очереди
+				foreach( glob(pathinfo($this->dumpPath('1'), PATHINFO_DIRNAME) . '/*.json' . ($force ? '.*' : '')) as $filename ) {
+					$table = pathinfo(preg_replace('/\.json(\..*?)?$/', '.json', $filename), PATHINFO_FILENAME);
+					if( $force || $this->availableForProcessing($table) ) {
+						$this->queueProcessing($filename, $table);
+						if( $force ) {
+							delay(1);
+						}
+					}
+				}
+			} finally {
+				$this->lock = false;
 			}
 		}
 	}
@@ -196,8 +190,8 @@ class Processor extends BaseConsumeWorker {
 			return true;
 		}
 
-		//Размер больше 1 Мб, вставляем
-		return filesize($this->dumpPath($table)) >= 1048576;
+		//Размер больше 5 Мб, вставляем
+		return filesize($this->dumpPath($table)) >= 5242880;
 	}
 
 	/**
