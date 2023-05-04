@@ -49,6 +49,11 @@ $servers = [
 		'deploy_to' => '/home/rails/rees46_clickhouse_queue',
 		'ssh'       => $ssh_options,
 	],
+	'kari' => [
+		'servers'   => ['10.2.3.24'],
+		'deploy_to' => '/home/rails/rees46_clickhouse_queue',
+		'ssh'       => array_merge($ssh_options, ['port' => 22]),
+	],
 ];
 
 /**
@@ -60,7 +65,6 @@ if( !class_exists('Composer\Autoload\ClassLoader', false) ) {
 }
 
 //Запускаем деплой
-$level = Logger::TYPE_ERROR;
 Deploy::$reload_cmd = 'bin/run reload';
 $deploy = new Deploy($repo_url, $branch, $servers, $argv);
-$deploy->execute($level);
+$deploy->execute(Logger::TYPE_ERROR);
