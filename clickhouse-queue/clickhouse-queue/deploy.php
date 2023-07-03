@@ -65,6 +65,6 @@ if( !class_exists('Composer\Autoload\ClassLoader', false) ) {
 }
 
 //Запускаем деплой
-Deploy::$reload_cmd = 'bin/run reload';
+Deploy::$reload_cmd = 'bin/run restart -d';
 $deploy = new Deploy($repo_url, $branch, $servers, $argv);
 $deploy->execute(Logger::TYPE_ERROR);

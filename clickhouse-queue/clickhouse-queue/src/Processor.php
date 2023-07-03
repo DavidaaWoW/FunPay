@@ -26,7 +26,7 @@ class Processor extends BaseConsumeWorker {
 	private bool $started = false;
 	private string $loop_queue;
 	private string $loop_bad;
-	private bool $lock = false;
+	private array $lock = [true => false, false => false];
 
 	/**
 	 * API WebServer constructor.
@@ -152,9 +152,9 @@ class Processor extends BaseConsumeWorker {
 	 * @param bool $force Форсированная обработка упавших файлов
 	 */
 	public function queueUpdated(bool $force = false): void {
-		if( !$this->lock ) {
+		if( !$this->lock[$force] ) {
 			try {
-				$this->lock = true;
+				$this->lock[$force] = true;
 				//Проходим по локальной очереди
 				foreach( glob(pathinfo($this->dumpPath('1'), PATHINFO_DIRNAME) . '/*.json' . ($force ? '.*' : '')) as $filename ) {
 					$table = pathinfo(preg_replace('/\.json(\..*?)?$/', '.json', $filename), PATHINFO_FILENAME);
@@ -166,7 +166,7 @@ class Processor extends BaseConsumeWorker {
 					}
 				}
 			} finally {
-				$this->lock = false;
+				$this->lock[$force] = false;
 			}
 		}
 	}
@@ -210,11 +210,14 @@ class Processor extends BaseConsumeWorker {
 		}
 
 		try {
+			$this->task_working++;
 			$data = file_get_contents($path);
 			Clickhouse::get()->bulkDataInsertJson($data, $table);
 			unlink($path);
 		} catch (\Exception $e) {
 			Logger::$logger->error(get_class($e) . ', ' . $e->getMessage(), array_slice($e->getTrace(), 0, 2));
+		} finally {
+			$this->task_working--;
 		}
 	}
 }
