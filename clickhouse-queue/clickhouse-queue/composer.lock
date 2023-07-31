@@ -316,16 +316,16 @@
         },
         {
             "name": "amphp/file",
-            "version": "v3.0.0",
+            "version": "v3.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/amphp/file.git",
-                "reference": "1c9f0ebdb20ae05f1540fca3e7a517f7f166652b"
+                "reference": "efeb737b1f19a7fcfe8a763c5ef2ad80dbac93dd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/amphp/file/zipball/1c9f0ebdb20ae05f1540fca3e7a517f7f166652b",
-                "reference": "1c9f0ebdb20ae05f1540fca3e7a517f7f166652b",
+                "url": "https://api.github.com/repos/amphp/file/zipball/efeb737b1f19a7fcfe8a763c5ef2ad80dbac93dd",
+                "reference": "efeb737b1f19a7fcfe8a763c5ef2ad80dbac93dd",
                 "shasum": ""
             },
             "require": {
@@ -389,7 +389,7 @@
             ],
             "support": {
                 "issues": "https://github.com/amphp/file/issues",
-                "source": "https://github.com/amphp/file/tree/v3.0.0"
+                "source": "https://github.com/amphp/file/tree/v3.0.1"
             },
             "funding": [
                 {
@@ -397,7 +397,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2023-03-02T22:29:08+00:00"
+            "time": "2023-07-23T18:54:06+00:00"
         },
         {
             "name": "amphp/hpack",
@@ -2666,7 +2666,7 @@
             "source": {
                 "type": "git",
                 "url": "ssh://git@git.jetbrains.space/rees46/dev/core-php.git",
-                "reference": "ee4b3c6810fb3654571cb30178e1d82713e90f5a"
+                "reference": "0a31c7c2a6d9fbfcd3c1d802fa24b7919ace35f7"
             },
             "require": {
                 "amphp/amp": "^v3.0",
@@ -2715,20 +2715,20 @@
                 }
             ],
             "description": "Library for all services",
-            "time": "2023-06-20T12:45:35+00:00"
+            "time": "2023-07-31T08:55:37+00:00"
         },
         {
             "name": "revolt/event-loop",
-            "version": "v1.0.1",
+            "version": "v1.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/revoltphp/event-loop.git",
-                "reference": "9ac31d36635c60a9b28bb2a476384c5ec55c95cc"
+                "reference": "0fe2d31e1cddd26664e55d383d3d5da613334c03"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/revoltphp/event-loop/zipball/9ac31d36635c60a9b28bb2a476384c5ec55c95cc",
-                "reference": "9ac31d36635c60a9b28bb2a476384c5ec55c95cc",
+                "url": "https://api.github.com/repos/revoltphp/event-loop/zipball/0fe2d31e1cddd26664e55d383d3d5da613334c03",
+                "reference": "0fe2d31e1cddd26664e55d383d3d5da613334c03",
                 "shasum": ""
             },
             "require": {
@@ -2785,9 +2785,9 @@
             ],
             "support": {
                 "issues": "https://github.com/revoltphp/event-loop/issues",
-                "source": "https://github.com/revoltphp/event-loop/tree/v1.0.1"
+                "source": "https://github.com/revoltphp/event-loop/tree/v1.0.3"
             },
-            "time": "2023-04-02T16:25:26+00:00"
+            "time": "2023-07-29T17:07:12+00:00"
         },
         {
             "name": "sahil-gulati/reqrequest",
@@ -2927,16 +2927,16 @@
         },
         {
             "name": "workerman/workerman",
-            "version": "v5.0.0-beta.6",
+            "version": "v5.0.0-beta.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/walkor/workerman.git",
-                "reference": "7dea1e6c9f23daff0264c0ee1a86b80df390c0eb"
+                "reference": "b1f8c5a58640f17fe6acb59081e488a9b4f5e896"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/walkor/workerman/zipball/7dea1e6c9f23daff0264c0ee1a86b80df390c0eb",
-                "reference": "7dea1e6c9f23daff0264c0ee1a86b80df390c0eb",
+                "url": "https://api.github.com/repos/walkor/workerman/zipball/b1f8c5a58640f17fe6acb59081e488a9b4f5e896",
+                "reference": "b1f8c5a58640f17fe6acb59081e488a9b4f5e896",
                 "shasum": ""
             },
             "require": {
@@ -2947,8 +2947,10 @@
                 "ext-swow": "<v1.0.0"
             },
             "require-dev": {
+                "guzzlehttp/guzzle": "^7.0",
                 "mockery/mockery": "2.0.x-dev",
-                "pestphp/pest": "2.x-dev"
+                "pestphp/pest": "2.x-dev",
+                "phpstan/phpstan": "1.11.x-dev"
             },
             "suggest": {
                 "ext-event": "For better performance. "
@@ -2996,7 +2998,7 @@
                     "type": "patreon"
                 }
             ],
-            "time": "2023-06-12T07:40:12+00:00"
+            "time": "2023-07-27T07:34:23+00:00"
         }
     ],
     "packages-dev": [
@@ -3355,16 +3357,16 @@
         },
         {
             "name": "phpunit/php-code-coverage",
-            "version": "9.2.26",
+            "version": "9.2.27",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-code-coverage.git",
-                "reference": "443bc6912c9bd5b409254a40f4b0f4ced7c80ea1"
+                "reference": "b0a88255cb70d52653d80c890bd7f38740ea50d1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/443bc6912c9bd5b409254a40f4b0f4ced7c80ea1",
-                "reference": "443bc6912c9bd5b409254a40f4b0f4ced7c80ea1",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/b0a88255cb70d52653d80c890bd7f38740ea50d1",
+                "reference": "b0a88255cb70d52653d80c890bd7f38740ea50d1",
                 "shasum": ""
             },
             "require": {
@@ -3420,7 +3422,8 @@
             ],
             "support": {
                 "issues": "https://github.com/sebastianbergmann/php-code-coverage/issues",
-                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/9.2.26"
+                "security": "https://github.com/sebastianbergmann/php-code-coverage/security/policy",
+                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/9.2.27"
             },
             "funding": [
                 {
@@ -3428,7 +3431,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2023-03-06T12:58:08+00:00"
+            "time": "2023-07-26T13:44:30+00:00"
         },
         {
             "name": "phpunit/php-file-iterator",
@@ -3673,16 +3676,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "9.6.9",
+            "version": "9.6.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "a9aceaf20a682aeacf28d582654a1670d8826778"
+                "reference": "a6d351645c3fe5a30f5e86be6577d946af65a328"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/a9aceaf20a682aeacf28d582654a1670d8826778",
-                "reference": "a9aceaf20a682aeacf28d582654a1670d8826778",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/a6d351645c3fe5a30f5e86be6577d946af65a328",
+                "reference": "a6d351645c3fe5a30f5e86be6577d946af65a328",
                 "shasum": ""
             },
             "require": {
@@ -3756,7 +3759,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/9.6.9"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/9.6.10"
             },
             "funding": [
                 {
@@ -3772,7 +3775,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-06-11T06:13:56+00:00"
+            "time": "2023-07-10T04:04:23+00:00"
         },
         {
             "name": "sebastian/cli-parser",
