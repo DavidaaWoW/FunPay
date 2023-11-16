@@ -27,6 +27,7 @@ class Processor extends BaseConsumeWorker {
 	private string $loop_queue;
 	private string $loop_bad;
 	private array $lock = [true => false, false => false];
+	private array $fp = [];
 
 	/**
 	 * API WebServer constructor.
@@ -59,6 +60,7 @@ class Processor extends BaseConsumeWorker {
 		Clickhouse::$inactive_timeout = 120;
 		Clickhouse::$transfer_timeout = 120;
 		Logger::$logger->info('Starting');
+		Logger::$logger->debug('class: ' . get_class(\Amp\File\createDefaultDriver()));
 
 		//Получаем список всех таблиц кликхауса
 		$tables = array_filter(array_column(Clickhouse::get()->execute('SHOW TABLES'), 'name'), fn($v) => !str_starts_with($v, '.'));
@@ -111,8 +113,15 @@ class Processor extends BaseConsumeWorker {
 			}
 
 			//Добавляем строку в файл вставки
-			$path = $this->dumpPath($table);
-			file_put_contents($path, json_encode($values, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
+			if( empty($this->fp[$table]) ) {
+				$this->fp[$table] = fopen($this->dumpPath($table), 'a+');
+				stream_set_blocking($this->fp[$table], false);
+			}
+			//Вызываем блокировку файла и пишем в него
+			if( flock($this->fp[$table], LOCK_EX) ) {
+				fwrite($this->fp[$table], json_encode($values, JSON_UNESCAPED_UNICODE) . PHP_EOL);
+			}
+			flock($this->fp[$table], LOCK_UN);
 
 			//Запоминаем время вставки
 			if( !isset($this->queue_time[$table]) ) {
@@ -202,6 +211,14 @@ class Processor extends BaseConsumeWorker {
 	protected function queueProcessing(string $file, string $table): void {
 		//Копируем данные, чтобы во время обработки их не дополнили случайно
 		if( str_ends_with($file, '.json') ) {
+
+			//Закрываем файл и удаляем из массива
+			if( isset($this->fp[$table]) && flock($this->fp[$table], LOCK_EX) ) {
+				fclose($this->fp[$table]);
+				unset($this->fp[$table]);
+			}
+
+			//Переименовываем файл
 			$path = $file . '.' . uniqid();
 			rename($file, $path);
 			unset($this->queue_time[$table]);
@@ -211,7 +228,10 @@ class Processor extends BaseConsumeWorker {
 
 		try {
 			$this->task_working++;
-			$data = file_get_contents($path);
+			$fp = fopen($path, 'r');
+			stream_set_blocking($fp, false);
+			$data = stream_get_contents($fp);
+			fclose($fp);
 			Clickhouse::get()->bulkDataInsertJson($data, $table);
 			unlink($path);
 		} catch (\Exception $e) {

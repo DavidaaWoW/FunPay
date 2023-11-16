@@ -9,6 +9,8 @@ use PHPUnit\Framework\MockObject\MockObject;
 use REES46\ClickHouse\Processor;
 use REES46\Core\Clickhouse;
 use REES46\Test\BaseTest;
+use function Amp\async;
+use function Amp\Future\awaitAll;
 
 class ProcessorTest extends BaseTest {
 
@@ -33,14 +35,22 @@ class ProcessorTest extends BaseTest {
 		$this->assertEquals(0, Clickhouse::get()->count('events'));
 
 		$worker = $this->getMockBuilder(Processor::class)->onlyMethods(['availableForProcessing'])->setConstructorArgs([new CLImate()])->getMock();
-		$worker->expects($this->once())->method('availableForProcessing')->willReturn(true);
+		$worker->expects($this->exactly(2))->method('availableForProcessing')->willReturn(true);
 
-		$message = $this->message('events', ['shop_id' => 1, 'client_id' => 1, 'event' => 'view', 'code' => uniqid(), 'category' => 'Item']);
 		$channel = $this->channel();
-		$channel->expects($this->once())->method('ack')->with($message);
-		$worker->received($message, $channel);
+		$channel->expects($this->exactly(3))->method('ack');
+		awaitAll([
+			async(fn() => $worker->received($this->message('events', ['shop_id' => 1, 'client_id' => 1, 'event' => 'view', 'code' => uniqid(), 'category' => 'Item']), $channel)),
+			async(fn() => $worker->received($this->message('events', ['shop_id' => 1, 'client_id' => 1, 'event' => 'view', 'code' => uniqid(), 'category' => 'Item']), $channel)),
+		]);
 		$worker->queueUpdated();
 
-		$this->assertEquals(1, Clickhouse::get()->count('events'));
+		$this->assertEquals(2, Clickhouse::get()->count('events'));
+
+		$worker->received($this->message('events', ['shop_id' => 1, 'client_id' => 1, 'event' => 'view', 'code' => uniqid(), 'category' => 'Item']), $channel);
+
+		$worker->queueUpdated();
+
+		$this->assertEquals(3, Clickhouse::get()->count('events'));
 	}
 }
