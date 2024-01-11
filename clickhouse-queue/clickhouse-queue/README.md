@@ -36,3 +36,12 @@ composer install
 ```sh
 ./bin/run start -v debug
 ```
+
+## Optional install async filesystem driver
+
+```sh
+echo '' | pecl install eio
+ln -s /etc/php/8.1/mods-available/eio.ini /etc/php/8.1/cli/conf.d/
+echo 'extension=eio.so' > /etc/php/8.1/mods-available/eio.ini
+php -m |grep eio
+```
