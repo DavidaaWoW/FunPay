@@ -1,7 +1,0 @@
-vendor/
-.idea/
-config/secrets.ini
-config/test_secrets.ini
-config/ansible
-log/
-tmp/
