@@ -22,4 +22,5 @@ $db = new Database($mysqli);
 $test = new DatabaseTest($db);
 $test->testBuildQuery();
 
+
 exit('OK');
