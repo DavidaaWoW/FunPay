@@ -38,7 +38,7 @@ jobs:
           if [ -f "Dockerfile" ]; then
             echo "🔎🔎🔎  Found Dockerfile for funpay"
             image_name=ghcr.io/$REPOSITORY_OWNER/funpay:latest
-            docker build -f docker/Dockerfile . -t $image_name --quiet
+            docker build -f Dockerfile . -t $image_name --quiet
             echo $GITHUB_TOKEN | docker login ghcr.io -u $REPOSITORY_OWNER --password-stdin
             docker push $image_name --quiet
             echo "✅✅✅ Pushed successfully $image_name"
