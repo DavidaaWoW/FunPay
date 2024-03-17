@@ -35,7 +35,7 @@ jobs:
           REPOSITORY_OWNER: ${{ github.repository_owner }}
         run: |
           echo "🏗🏗🏗️  Building api-rails..."
-          if [ -f ".Dockerfile" ]; then
+          if [ -f "Dockerfile" ]; then
             echo "🔎🔎🔎  Found Dockerfile for api-rails"
             image_name=ghcr.io/$REPOSITORY_OWNER/api-rails:latest
             docker build -f docker/Dockerfile-API . -t $image_name --quiet
