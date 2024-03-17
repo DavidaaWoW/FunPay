@@ -7,11 +7,11 @@ on:
       - master
   workflow_dispatch:
 
-      changeLookUpPath:
-        description: 'Which folder to look for changes and publish'
-        default: '**'
-        required: false
-        type: string
+#      changeLookUpPath:
+#        description: 'Which folder to look for changes and publish'
+#        default: '**/'
+#        required: false
+#        type: string
 
 jobs:
   run:
@@ -33,10 +33,25 @@ jobs:
       - name: Changed files
         id: changed_files
         uses: tj-actions/changed-files@v42
+        with:
+          files: /**
       - name: Build and Push Docker images
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
         if: steps.changed_files.outputs.any_changed == 'true'
         run: |
           echo "🏗🏗🏗️  Building api-rails..."
+          if [ -f ".Dockerfile-API" ]; then
+            echo "🔎🔎🔎  Found Dockerfile for api-rails"
+            image_name=ghcr.io/$REPOSITORY_OWNER/api-rails:latest
+            docker build -f docker/Dockerfile-API . -t $image_name --quiet
+            echo $GITHUB_TOKEN | docker login ghcr.io -u $REPOSITORY_OWNER --password-stdin
+            docker push $image_name --quiet
+            echo "✅✅✅ Pushed successfully $image_name"
+          else
+            echo "❎❎❎  No Dockerfile for $package found, skipping"
+          fi
       - name: Test
         env:
           CHANGED_FILES: ${{ steps.changed_files.outputs.any_changed }}
