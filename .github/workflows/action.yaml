@@ -29,15 +29,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node-version }}
-
-      - name: Changed files
-        id: changed_files
-        uses: tj-actions/changed-files@v42
       - name: Build and Push Docker images
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY_OWNER: ${{ github.repository_owner }}
-        if: steps.changed_files.outputs.any_changed == 'true'
         run: |
           echo "🏗🏗🏗️  Building api-rails..."
           if [ -f ".Dockerfile-API" ]; then
@@ -50,7 +45,3 @@ jobs:
           else
             echo "❎❎❎  No Dockerfile for $package found, skipping"
           fi
-      - name: Test
-        env:
-          CHANGED_FILES: ${{ steps.changed_files.outputs.any_modified }}
-        run: echo $CHANGED_FILES
