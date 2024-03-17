@@ -40,16 +40,7 @@ jobs:
         if: steps.changed_files.outputs.any_changed == 'true'
         run: |
           echo "🏗🏗🏗️  Building api-rails..."
-          if [ -f ".Dockerfile-API" ]; then
-            echo "🔎🔎🔎  Found Dockerfile for api-rails"
-            image_name=ghcr.io/$REPOSITORY_OWNER/api-rails:latest
-            docker build -f docker/Dockerfile-API . -t $image_name --quiet
-            echo $GITHUB_TOKEN | docker login ghcr.io -u $REPOSITORY_OWNER --password-stdin
-            docker push $image_name --quiet
-            echo "✅✅✅ Pushed successfully $image_name"
-          else
-            echo "❎❎❎  No Dockerfile for $package found, skipping"
-          fi
+
       - name: Test
         env:
           CHANGED_FILES: ${{ steps.changed_files.outputs.all_changed_files }}
