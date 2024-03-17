@@ -50,3 +50,5 @@ jobs:
           else
             echo "❎❎❎  No Dockerfile for $package found, skipping"
           fi
+      - name: Test
+        run: echo steps.changed_files.outputs.all_changed_files
