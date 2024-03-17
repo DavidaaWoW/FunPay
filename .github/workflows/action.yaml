@@ -34,7 +34,7 @@ jobs:
         id: changed_files
         uses: tj-actions/changed-files@v42
         with:
-          files: /**/*
+          files: **
       - name: Build and Push Docker images
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
