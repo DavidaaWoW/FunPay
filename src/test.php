@@ -23,3 +23,4 @@ $test->testBuildQuery();
 
 
 exit('OK');
+
