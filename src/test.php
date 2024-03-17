@@ -1,8 +1,7 @@
 <?php
 
-
-use FpDbTest\Database;
-use FpDbTest\DatabaseTest;
+use FpDbTest\src\Database;
+use FpDbTest\src\DatabaseTest;
 
 spl_autoload_register(function ($class) {
     $a = array_slice(explode('\\', $class), 1);

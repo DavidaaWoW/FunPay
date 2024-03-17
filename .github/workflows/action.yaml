@@ -1,0 +1,52 @@
+name: Reusable docker publish
+
+on:
+  pull_request:
+    types: [ closed ]
+    branches:
+      - master
+  workflow_dispatch:
+
+      changeLookUpPath:
+        description: 'Which folder to look for changes and publish'
+        default: '**'
+        required: false
+        type: string
+
+jobs:
+  run:
+    name: Publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Changed files
+        id: changed_files
+        uses: tj-actions/changed-files@v42
+      - name: Build and Push Docker images
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+        if: steps.changed_files.outputs.any_changed == 'true'
+        run: |
+          echo "🏗🏗🏗️  Building api-rails..."
+          if [ -f ".Dockerfile-API" ]; then
+            echo "🔎🔎🔎  Found Dockerfile for api-rails"
+            image_name=ghcr.io/$REPOSITORY_OWNER/api-rails:latest
+            docker build -f docker/Dockerfile-API . -t $image_name --quiet
+            echo $GITHUB_TOKEN | docker login ghcr.io -u $REPOSITORY_OWNER --password-stdin
+            docker push $image_name --quiet
+            echo "✅✅✅ Pushed successfully $image_name"
+          else
+            echo "❎❎❎  No Dockerfile for $package found, skipping"
+          fi

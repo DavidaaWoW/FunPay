@@ -1,0 +1,20 @@
+{
+    "name": "david/fun-pay",
+    "require-dev": {
+        "phpunit/php-timer": "^6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "David\\FunPay\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "davidgegiya",
+            "email": "davidik.gegiya@gmail.com"
+        }
+    ],
+    "require": {
+        "phpunit/phpunit": "^10.5"
+    }
+}

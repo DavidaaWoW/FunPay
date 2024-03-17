@@ -1,6 +1,6 @@
 <?php
 
-namespace FpDbTest;
+namespace FpDbTest\src;
 
 interface DatabaseInterface
 {
