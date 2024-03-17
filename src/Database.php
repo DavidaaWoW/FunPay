@@ -1,6 +1,6 @@
 <?php
 
-namespace FpDbTest;
+namespace FpDbTest\src;
 
 use Exception;
 use mysqli;
@@ -90,7 +90,7 @@ class Database implements DatabaseInterface
         $replacement = [];
 
         foreach ($matches[0] as $i=>$match){
-            if($args[$i] instanceof SkipValue){
+            if($args[$i] instanceof \FpDbTest\SkipValue ){
                 // Определяем текущее положение
                 $spec_pos = strpos($query, $match);
                 // Определяем все позиции
@@ -193,6 +193,6 @@ class Database implements DatabaseInterface
 
     public function skip()
     {
-        return new SkipValue();
+        return new \FpDbTest\SkipValue();
     }
 }
