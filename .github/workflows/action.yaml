@@ -33,8 +33,6 @@ jobs:
       - name: Changed files
         id: changed_files
         uses: tj-actions/changed-files@v42
-        with:
-          files: **
       - name: Build and Push Docker images
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -54,5 +52,5 @@ jobs:
           fi
       - name: Test
         env:
-          CHANGED_FILES: ${{ steps.changed_files.outputs.any_changed }}
+          CHANGED_FILES: ${{ steps.changed_files.outputs.any_modified }}
         run: echo $CHANGED_FILES
