@@ -34,14 +34,10 @@ jobs:
         id: changed_files
         uses: tj-actions/changed-files@v42
       - name: Build and Push Docker images
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY_OWNER: ${{ github.repository_owner }}
         if: steps.changed_files.outputs.any_changed == 'true'
         run: |
           echo "🏗🏗🏗️  Building api-rails..."
-
       - name: Test
         env:
-          CHANGED_FILES: ${{ steps.changed_files.outputs.all_changed_files }}
+          CHANGED_FILES: ${{ steps.changed_files.outputs.any_changed }}
         run: echo $CHANGED_FILES
