@@ -37,7 +37,7 @@ jobs:
       - name: Composer init
         uses: php-actions/composer@v6
         with:
-          container_workdir: /
+          container_workdir: .
       - name: Run linters
         uses: wearerequired/lint-action@v2
         with:
