@@ -41,6 +41,9 @@ jobs:
           php_codesniffer: true
       - name: Install dependencies
         run: composer install
+      - name: List files in the directory
+        run: ls -al
+        working-directory: ${{ github.workspace }}
 #      - name: Execute tests
 #        run: XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-clover=build/logs/clover.xml --testdox
       - name: Run tests
@@ -48,7 +51,7 @@ jobs:
         with:
           version: 9.6
           bootstrap: vendor/autoload.php
-          configuration: /phpunit.xml
+          configuration: ${{ github.workspace }}/phpunit.xml
           args: --coverage-text
 #      - name: Build and Push Docker images
 #        env:
