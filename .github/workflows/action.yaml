@@ -35,17 +35,21 @@ jobs:
           php-version: "8.1"
           coverage: none
           tools: phpcs
-      - name: List files in the directory
-        run: ls -al
-        working-directory: /home/runner/work/FunPay/FunPay/src
-      - name: Composer init
-        uses: php-actions/composer@v6
-        with:
-          container_workdir: ${{ github.workspace }}
       - name: Run linters
         uses: wearerequired/lint-action@v2
         with:
           php_codesniffer: true
+      - name: Install dependencies
+        run: composer install
+
+      - name: Prepare codeclimate test reporter
+        if: ${{ matrix.php == '8.0' }}
+        run: |
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+          ./cc-test-reporter before-build
+#      - name: Execute tests
+#        run: XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-clover=build/logs/clover.xml --testdox
       - name: Run tests
         uses: php-actions/phpunit@v3
         with:
