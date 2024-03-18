@@ -43,13 +43,12 @@ jobs:
         run: composer install
       - name: List files in the directory
         run: ls -al
-        working-directory: ${{ github.workspace }}
       - name: Run tests
         uses: php-actions/phpunit@v3
         with:
           version: 9.6
           bootstrap: vendor/autoload.php
-          configuration: ${{ github.workspace }}/phpunit.xml
+          configuration: phpunit.xml
           args: --coverage-text
 #      - name: Build and Push Docker images
 #        env:
