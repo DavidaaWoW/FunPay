@@ -8,6 +8,7 @@ class DatabaseTest
 {
     private DatabaseInterface $db;
 
+
     public function __construct(DatabaseInterface $db)
     {
         $this->db = $db;
