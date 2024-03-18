@@ -37,7 +37,7 @@ jobs:
           tools: phpcs
       - name: List files in the directory
         run: ls -al
-        working-directory: ${{ github.workspace }}
+        working-directory: /home/runner/work/FunPay/FunPay
       - name: Composer init
         uses: php-actions/composer@v6
         with:
