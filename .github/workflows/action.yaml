@@ -55,7 +55,7 @@ jobs:
         with:
           version: 9.6
           bootstrap: vendor/autoload.php
-#          configuration: test/phpunit.xml
+          configuration: test/phpunit.xml
           args: --coverage-text
 #      - name: Build and Push Docker images
 #        env:
