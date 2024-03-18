@@ -3,7 +3,11 @@
 use FpDbTest\src\Database;
 use FpDbTest\src\DatabaseTest;
 
-spl_autoload_register(function ($class) {
+spl_autoload_register(/**
+ * @param $class
+ * @return void
+ * @throws Exception
+ */ function ($class) {
     $a = array_slice(explode('\\', $class), 1);
     if (!$a) {
         throw new Exception();
