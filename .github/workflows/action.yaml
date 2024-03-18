@@ -1,6 +1,7 @@
 name: Reusable docker publish
 
 on:
+  push:
   pull_request:
     types: [ opened ]
     branches:
@@ -34,6 +35,9 @@ jobs:
           php-version: "8.1"
           coverage: none
           tools: phpcs
+      - name: List files in the directory
+        run: ls -al
+        working-directory: ${{ github.workspace }}
       - name: Composer init
         uses: php-actions/composer@v6
         with:
