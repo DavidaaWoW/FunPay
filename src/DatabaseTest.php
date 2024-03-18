@@ -4,17 +4,30 @@ namespace FpDbTest\src;
 
 use Exception;
 
+/**
+ *
+ */
 class DatabaseTest
 {
-    private DatabaseInterface $db;
+	/**
+	 * @var DatabaseInterface
+	 */
+	private DatabaseInterface $db;
 
 
-    public function __construct(DatabaseInterface $db)
+	/**
+	 * @param DatabaseInterface $db
+	 */
+	public function __construct(DatabaseInterface $db)
     {
         $this->db = $db;
     }
 
-    public function testBuildQuery(): void
+	/**
+	 * @return void
+	 * @throws Exception
+	 */
+	public function testBuildQuery(): void
     {
         $results = [];
 

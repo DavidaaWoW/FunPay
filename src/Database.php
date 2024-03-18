@@ -13,7 +13,11 @@ class Database implements DatabaseInterface
     private mysqli $mysqli;
     private $spec_types;
 
-    public function __construct(mysqli $mysqli, array $spec_types = null)
+	/**
+	 * @param mysqli     $mysqli
+	 * @param array|null $spec_types
+	 */
+	public function __construct(mysqli $mysqli, array $spec_types = null)
     {
         $this->mysqli = $mysqli;
         $this->spec_types = [
@@ -28,7 +32,12 @@ class Database implements DatabaseInterface
                 $spec_types[$key] = $val;
     }
 
-    private function findAllStrPos($haystack, $needle) {
+	/**
+	 * @param $haystack
+	 * @param $needle
+	 * @return array
+	 */
+	private function findAllStrPos($haystack, $needle) {
         $offset = 0;
         $allpos = array();
         while (($pos = strpos($haystack, $needle, $offset)) !== FALSE) {
@@ -38,7 +47,14 @@ class Database implements DatabaseInterface
         return $allpos;
     }
 
-    private function dropOptionalText($query, $spec_pos, $left_braces, $right_braces){
+	/**
+	 * @param $query
+	 * @param $spec_pos
+	 * @param $left_braces
+	 * @param $right_braces
+	 * @return array|string|string[]
+	 */
+	private function dropOptionalText($query, $spec_pos, $left_braces, $right_braces){
         $left = $left_braces[0];
         $right = $right_braces[count($right_braces)-1];
         // Приближением находим ближайшие условные блоки
@@ -56,7 +72,15 @@ class Database implements DatabaseInterface
         return substr_replace($query, '', $left, $right);
     }
 
-    private function castType($arg, $spec_type, $slashes = false, $apostrophe = false){
+	/**
+	 * @param $arg
+	 * @param $spec_type
+	 * @param $slashes
+	 * @param $apostrophe
+	 * @return mixed|string|null
+	 * @throws Exception
+	 */
+	private function castType($arg, $spec_type, $slashes = false, $apostrophe = false){
         $type = gettype($arg);
         if($type == 'string')
         $arg = addslashes($arg);
@@ -78,7 +102,13 @@ class Database implements DatabaseInterface
         return $arg;
     }
 
-    public function buildQuery(string $query, array $args = []): string
+	/**
+	 * @param string $query
+	 * @param array  $args
+	 * @return string
+	 * @throws Exception
+	 */
+	public function buildQuery(string $query, array $args = []): string
     {
         $spec_count = substr_count($query, '?');
         $args_count = count($args);
@@ -191,7 +221,10 @@ class Database implements DatabaseInterface
 //        throw new Exception();
     }
 
-    public function skip()
+	/**
+	 * @return \FpDbTest\SkipValue
+	 */
+	public function skip()
     {
         return new \FpDbTest\SkipValue();
     }
