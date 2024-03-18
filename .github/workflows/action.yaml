@@ -1,6 +1,7 @@
 name: Reusable docker publish
 
 on:
+  push:
   pull_request:
     types: [ closed ]
     branches:
