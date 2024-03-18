@@ -22,7 +22,14 @@ jobs:
   run:
     name: Publish
     runs-on: ubuntu-latest
-
+    services:
+      image: postgres
+      env:
+        - POSTGRES_USER: postgres
+        - POSTGRES_PASSWORD: postgres
+        - POSTGRES_BD: postgres
+      ports:
+        - 5432/tcp
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,16 +50,15 @@ jobs:
         run: composer install
       - name: List files in the directory
         run: ls -al
-        working-directory: ${{ github.workspace }}
-#      - name: Execute tests
-#        run: XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-clover=build/logs/clover.xml --testdox
       - name: Run tests
         uses: php-actions/phpunit@v3
         with:
           version: 9.6
           bootstrap: vendor/autoload.php
-          configuration: ${{ github.workspace }}/phpunit.xml
+          configuration: phpunit.xml
           args: --coverage-text
+      - name: Execute tests
+        run: XDEBUG_MODE=coverage vendor/bin/phpunit --bootstrap=vendor/autoload.php --configuration=phpunit.xml
 #      - name: Build and Push Docker images
 #        env:
 #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
