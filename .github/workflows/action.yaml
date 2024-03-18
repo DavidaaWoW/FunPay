@@ -1,6 +1,7 @@
 name: Reusable docker publish
 
 on:
+  push:
   pull_request:
     types: [ closed ]
     branches:
@@ -29,19 +30,29 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node-version }}
-      - name: Build and Push Docker images
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY_OWNER: ${{ github.repository_owner }}
-        run: |
-          echo "🏗🏗🏗️  Building api-rails..."
-          if [ -f "Dockerfile" ]; then
-            echo "🔎🔎🔎  Found Dockerfile for funpay"
-            image_name=ghcr.io/$REPOSITORY_OWNER/funpay:latest
-            docker build -f Dockerfile . -t $image_name --quiet
-            echo $GITHUB_TOKEN | docker login ghcr.io -u $REPOSITORY_OWNER --password-stdin
-            docker push $image_name --quiet
-            echo "✅✅✅ Pushed successfully $image_name"
-          else
-            echo "❎❎❎  No Dockerfile for $package found, skipping"
-          fi
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          coverage: none
+          tools: phpcs
+      - name: Run linters
+        uses: wearerequired/lint-action@v2
+        with:
+          php_codesniffer: true
+#      - name: Build and Push Docker images
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          REPOSITORY_OWNER: ${{ github.repository_owner }}
+#        run: |
+#          echo "🏗🏗🏗️  Building api-rails..."
+#          if [ -f "Dockerfile" ]; then
+#            echo "🔎🔎🔎  Found Dockerfile for funpay"
+#            image_name=ghcr.io/$REPOSITORY_OWNER/funpay:latest
+#            docker build -f Dockerfile . -t $image_name --quiet
+#            echo $GITHUB_TOKEN | docker login ghcr.io -u $REPOSITORY_OWNER --password-stdin
+#            docker push $image_name --quiet
+#            echo "✅✅✅ Pushed successfully $image_name"
+#          else
+#            echo "❎❎❎  No Dockerfile for $package found, skipping"
+#          fi
