@@ -44,8 +44,6 @@ jobs:
       - name: List files in the directory
         run: ls -al
         working-directory: ${{ github.workspace }}
-#      - name: Execute tests
-#        run: XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-clover=build/logs/clover.xml --testdox
       - name: Run tests
         uses: php-actions/phpunit@v3
         with:
