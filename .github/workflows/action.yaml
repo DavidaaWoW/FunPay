@@ -22,7 +22,14 @@ jobs:
   run:
     name: Publish
     runs-on: ubuntu-latest
-
+    services:
+      image: postgres
+      env:
+        - POSTGRES_USER: postgres
+        - POSTGRES_PASSWORD: postgres
+        - POSTGRES_BD: postgres
+      ports:
+        - 5432/tcp
     steps:
       - name: Checkout
         uses: actions/checkout@v4
