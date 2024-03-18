@@ -23,16 +23,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: php-actions/composer@v6
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: master
           fetch-depth: 0
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ inputs.node-version }}
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -43,6 +39,13 @@ jobs:
         uses: wearerequired/lint-action@v2
         with:
           php_codesniffer: true
+      - name: Run tests
+        uses: php-actions/phpunit@v3
+        with:
+          version: 9.6
+          bootstrap: vendor/autoload.php
+          configuration: test/phpunit.xml
+          args: --coverage-text
 #      - name: Build and Push Docker images
 #        env:
 #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
