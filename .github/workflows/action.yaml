@@ -43,6 +43,15 @@ jobs:
         uses: wearerequired/lint-action@v2
         with:
           php_codesniffer: true
+      - name: Run tests
+        uses:
+          php-actions/composer@v6 # or alternative dependency management
+          php-actions/phpunit@v3
+        with:
+          version: 9.6
+          bootstrap: vendor/autoload.php
+          configuration: test/phpunit.xml
+          args: --coverage-text
 #      - name: Build and Push Docker images
 #        env:
 #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
