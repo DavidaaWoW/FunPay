@@ -28,11 +28,6 @@ jobs:
         with:
           ref: master
           fetch-depth: 0
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ inputs.node-version }}
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -45,7 +40,7 @@ jobs:
           php_codesniffer: true
       - name: Run tests
         uses:
-          php-actions/composer@v6 # or alternative dependency management
+          php-actions/composer@v6
           php-actions/phpunit@v3
         with:
           version: 9.6
