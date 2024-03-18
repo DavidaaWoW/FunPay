@@ -3,11 +3,13 @@ name: Reusable docker publish
 on:
   pull_request:
     types: [ opened ]
+    branches:
+      - master
 #  pull_request:
 #    types: [ closed ]
 #    branches:
 #      - master
-  workflow_dispatch:
+#  workflow_dispatch:
 
 #      changeLookUpPath:
 #        description: 'Which folder to look for changes and publish'
