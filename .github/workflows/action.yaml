@@ -51,7 +51,7 @@ jobs:
           configuration: phpunit.xml
           args: --coverage-text
       - name: Execute tests
-        run: XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-clover=build/logs/clover.xml --bootstrap=vendor/autoload.php --configuration=phpunit.xml
+        run: XDEBUG_MODE=coverage vendor/bin/phpunit --bootstrap=vendor/autoload.php --configuration=phpunit.xml
 #      - name: Build and Push Docker images
 #        env:
 #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
